@@ -18,8 +18,11 @@ namespace CleannetCode_bot
         private readonly IServiceScopeFactory serviceScopeFactory;
         private readonly ConcurrentBag<Task> awaitedTasks = new();
         private readonly CancellationTokenSource cancellationTokenSource = new();
-        
-        public BotService(ILogger<BotService> logger, ITelegramBotClient client, IServiceScopeFactory serviceScopeFactory)
+
+        public BotService(
+            ILogger<BotService> logger,
+            ITelegramBotClient client,
+            IServiceScopeFactory serviceScopeFactory)
         {
             this.logger = logger;
             this.client = client;
@@ -72,15 +75,27 @@ namespace CleannetCode_bot
             awaitedTasks.Add(ServeUpdate(update, cts));
             return Task.CompletedTask;
         }
+
         private async Task ServeUpdate(Update update, CancellationToken cts)
         {
             await using var scope = serviceScopeFactory.CreateAsyncScope();
-            var handlers = scope.ServiceProvider.GetRequiredService<Handlers>();
             var updateLogger = scope.ServiceProvider.GetRequiredService<ILogger<BotService>>();
+            var handlers = scope.ServiceProvider.GetRequiredService<Handlers>();
+            var handlersMap = scope.ServiceProvider.GetRequiredService<HandlersMap>();
             var stopwatch = Stopwatch.StartNew();
             updateLogger.LogDebug("Start serving update of type {Type} with id {Id}", update.Type, update.Id);
             try
             {
+                var updateHandlers = handlersMap.GetHandlers(update.Type);
+                foreach (var handler in updateHandlers)
+                {
+                    var result = await handler.HandleAsync();
+                    if (result.IsFailure)
+                    {
+                        updateLogger.LogError(message: result.Error);
+                    }
+                }
+
                 await (update.Type switch
                 {
                     UpdateType.Message => handlers.MessageAsync(update.Message, cts),
@@ -100,7 +115,7 @@ namespace CleannetCode_bot
                     _ => handlers.UnknownAsync(update, cts)
                 });
             }
-            catch (Exception exception) { updateLogger.LogError( exception, "Error occurred during update serving"); }
+            catch (Exception exception) { updateLogger.LogError(exception, "Error occurred during update serving"); }
             stopwatch.Stop();
             updateLogger.LogDebug("Finish serving update of type {Type} with id {Id} elapsed {Elapsed} ms", update.Type, update.Id, stopwatch.ElapsedMilliseconds);
         }
@@ -122,6 +137,7 @@ namespace CleannetCode_bot
         {
             await RunAsync();
         }
+
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             cancellationTokenSource.Cancel();
