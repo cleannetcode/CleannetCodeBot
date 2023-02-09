@@ -27,6 +27,7 @@ namespace CleannetCode_bot
                 })
                 .ConfigureServices((context, services) =>
                 {
+                    services.Configure<HomeworksServiceOptions>(context.Configuration.GetSection(HomeworksServiceOptions.Section));
                     services.AddHostedService<TimerHomeworksService>();
                     services.AddHostedService<BotService>();
                     services.AddSingleton<WelcomeHandler>();
