@@ -9,20 +9,19 @@ public sealed class HomeworksServiceOptions
 
     public string? FileNameCache { get; set; }
 
-    public int TelegramChannelID { get; set; }
+    public string? TelegramChannelID { get; set; }
 
-    public Organization[] Organizations { get; set; }
-
-    public class Organization
-    {
-        public string OrganizationName { get; set; }
-        public Repository[] Repositories { get; set; }
-    }
-
-    public class Repository
-    {
-        public string RepositoryName { get; set; }
-        public int[] DiscussionsID { get; set; }
-    }
+    public Organization[]? Organizations { get; set; }
 }
 
+public class Organization
+{
+    public string? OrganizationName { get; set; }
+    public Repository[]? Repositories { get; set; }
+}
+
+public class Repository
+{
+    public string? RepositoryName { get; set; }
+    public int[]? DiscussionsID { get; set; }
+}
