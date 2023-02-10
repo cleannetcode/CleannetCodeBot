@@ -11,20 +11,27 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
 {
     private Timer? _timer;
     private int _executionCount = 0;
+    private HomeworksHandler _homeworksHandler;
 
     private readonly ITelegramBotClient _client;
-    private readonly IOptionsMonitor<HomeworksServiceOptions> _homeworksServiceOptionsMonitor;
+    private readonly HomeworksServiceOptions _config;
     private readonly ILogger<TimerHomeworksService> _logger;
-    private HomeworksServiceOptions _config => _homeworksServiceOptionsMonitor.CurrentValue;
 
     public TimerHomeworksService(
         ITelegramBotClient client,
         IOptionsMonitor<HomeworksServiceOptions> homeworksServiceOptionsMonitor,
-        ILogger<TimerHomeworksService> logger)
+        ILogger<TimerHomeworksService> logger,
+        ILogger<HomeworksHandler> loggerHomeworksHandler)
     {
         this._client = client;
-        this._homeworksServiceOptionsMonitor = homeworksServiceOptionsMonitor;
+        this._config = homeworksServiceOptionsMonitor.CurrentValue;
         this._logger = logger;
+
+        _homeworksHandler = new HomeworksHandler(
+            client,
+            homeworksServiceOptionsMonitor.CurrentValue,
+            loggerHomeworksHandler
+        );
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -34,7 +41,7 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
         var delay = _config.CheckTimerInMinutes;
 
         _timer = new Timer(
-            DoWork,
+            TimerDoWork,
             null,
             TimeSpan.Zero,
             TimeSpan.FromMinutes(delay));
@@ -42,41 +49,12 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
         return Task.CompletedTask;
     }
 
-    public async void DoWork(object? state)
+    public void TimerDoWork(object? state)
     {
         int count = Interlocked.Increment(ref _executionCount);
         _logger.LogInformation("{Service} is working, execution count: {Count:#,0}", nameof(TimerHomeworksService), count);
 
-        var discussionMessagesRepository = new DiscussionMessagesRepository(_config.FileNameCache ?? "cachedHomeworkMessages0.json");
-        var newListMessage = new List<DiscussionMessages>();
-
-        foreach (var organization in _config.Organizations ?? Array.Empty<Organization>())
-        {
-            foreach (var repository in organization.Repositories ?? Array.Empty<Repository>())
-            {
-                foreach (var discussionID in repository.DiscussionsID ?? Array.Empty<int>())
-                {
-                    var allListMessages = await discussionMessagesRepository.GetMessagesFromDiscussion(
-                        organization.OrganizationName ?? "",
-                        repository.RepositoryName ?? "",
-                        discussionID);
-
-                    newListMessage.AddRange(discussionMessagesRepository.UpdateCacheAndGetNewMessages(
-                        organization.OrganizationName ?? "",
-                        repository.RepositoryName ?? "",
-                        discussionID,
-                        allListMessages));
-                }
-            }
-        }
-
-        foreach (var messagePage in newListMessage)
-        {
-            await _client.SendTextMessageAsync(
-                _config.TelegramChannelID ?? "",
-                $"Author: {messagePage.Author}\n\n {messagePage.Message}"); // messagePage.DatetimeCreateNode
-        }
-
+        _homeworksHandler.Start();
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
