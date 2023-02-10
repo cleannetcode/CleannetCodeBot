@@ -5,15 +5,16 @@ using System.Text.Json;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using Serilog.Debugging;
+using System.Text.RegularExpressions;
 
 namespace CleannetCode_bot.Features.Homeworks;
 
-public class DiscussionMessagesRepository
+public class GithubDataRepository
 {
     private string _fileName;
     public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
 
-    public DiscussionMessagesRepository(string fileName)
+    public GithubDataRepository(string fileName)
     {
         this._fileName = fileName;
     }
@@ -82,7 +83,12 @@ public class DiscussionMessagesRepository
         }
         else
         {
-            discussionData = new DiscussionData() { Messages = messages.ToList() };
+            var linksData = await GetLinksData(messages);
+            discussionData = new DiscussionData()
+            {
+                Messages = messages.ToList(),
+                Links = linksData.ToList() // <>
+            };
 
             if (homeworksCache.DiscussionsData?.ContainsKey(url) ?? false)
             {
@@ -96,14 +102,70 @@ public class DiscussionMessagesRepository
             Save(homeworksCache);
         }
 
+        if (newMessages.Count > 0)
+        {
+            homeworksCache.DiscussionsData?[url]?.Messages?.AddRange(newMessages);
 
-        if (newMessages.Count != 0)
+            var linksData = await GetLinksData(newMessages.ToArray());
+            homeworksCache.DiscussionsData?[url]?.Links?.AddRange(linksData);
+
             Save(homeworksCache);
+        }
 
         return newMessages.ToArray();
     }
 
-    private bool Save(HomeworksCache cache)
+    public async Task<LinkData[]> GetLinksData(DiscussionMessages[] messages)
+    {
+        var linksData = new List<LinkData>();
+
+        var pattern = @"https://github\.com/[A-Za-z0-9-_]+/[A-Za-z0-9-_]+";
+        var regex = new Regex(pattern);
+
+        foreach (var messagePage in messages)
+        {
+            var matches = regex.Matches(messagePage.Message);
+            foreach (Match match in matches)
+            {
+                var lastUpdateLinkData = await GetLastUpdateLinkData(new LinkData
+                {
+                    Link = match.Value
+                });
+
+                linksData.Add(lastUpdateLinkData);
+            }
+
+        }
+
+        return linksData.ToArray();
+    }
+
+    public async Task<LinkData> GetLastUpdateLinkData(LinkData linkData)
+    {
+        var client = new HttpClient();
+        var response = await client.GetAsync(linkData.Link + "/commits");
+        var httpPage = await response.Content.ReadAsStringAsync();
+
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(httpPage);
+
+        var lastCommit = htmlDoc.DocumentNode.SelectSingleNode("//a[@class=\"Link--primary text-bold js-navigation-open markdown-title\"]");
+
+        var timestampLastUpdateNode = htmlDoc.DocumentNode.SelectSingleNode("//relative-time");
+        var timestampLastUpdate = timestampLastUpdateNode.GetAttributeValue("datetime", null);
+        var datetimeLastUpdate = DateTimeOffset.Parse(timestampLastUpdate);
+
+        var newLinkData = new LinkData
+        {
+            Link = linkData.Link,
+            LastCommit = lastCommit.InnerText,
+            LastGithubUpdate = datetimeLastUpdate
+        };
+
+        return newLinkData;
+    }
+
+    public bool Save(HomeworksCache cache)
     {
         var json = JsonSerializer.Serialize(cache, new JsonSerializerOptions
         {
@@ -117,7 +179,7 @@ public class DiscussionMessagesRepository
         return true;
     }
 
-    private HomeworksCache Get()
+    public HomeworksCache Get()
     {
         var homeworksCache = new HomeworksCache();
         var path = Path.Combine(BaseDirectory, _fileName);

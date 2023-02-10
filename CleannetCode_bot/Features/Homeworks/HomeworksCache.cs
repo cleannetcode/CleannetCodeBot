@@ -10,4 +10,12 @@ public class HomeworksCache
 public class DiscussionData
 {
     public List<DiscussionMessages>? Messages { get; set; }
+    public List<LinkData>? Links { get; set; }
+}
+
+public class LinkData
+{
+    public string? Link { get; set; }
+    public string? LastCommit { get; set; }
+    public DateTimeOffset? LastGithubUpdate { get; set; }
 }
