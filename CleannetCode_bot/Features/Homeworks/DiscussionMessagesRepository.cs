@@ -7,12 +7,17 @@ using System.Text.Unicode;
 
 namespace CleannetCode_bot.Features.Homeworks;
 
-public partial class DiscussionMessagesRepository
+public class DiscussionMessagesRepository
 {
-    private const string fileName = "cachedHomeworkMessages.json";
+    private string _fileName;
     public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
 
-    public static async Task<DiscussionMessages[]> GetMessagesFromDiscussion(string organizationName, string repositoryName, int discussionID)
+    public DiscussionMessagesRepository(string fileName)
+    {
+        this._fileName = fileName;
+    }
+
+    public async Task<DiscussionMessages[]> GetMessagesFromDiscussion(string organizationName, string repositoryName, int discussionID)
     {
         var url = $"https://github.com/{organizationName}/{repositoryName}/discussions/{discussionID}";
 
@@ -54,7 +59,7 @@ public partial class DiscussionMessagesRepository
         return discussionMessages.ToArray();
     }
 
-    public static DiscussionMessages[] UpdateCacheAndGetNewMessages(string organizationName, string repositoryName, int discussionID, DiscussionMessages[] messages)
+    public DiscussionMessages[] UpdateCacheAndGetNewMessages(string organizationName, string repositoryName, int discussionID, DiscussionMessages[] messages)
     {
         var newMessages = new List<DiscussionMessages>();
         var homeworksCache = Get();
@@ -85,7 +90,7 @@ public partial class DiscussionMessagesRepository
         return newMessages.ToArray();
     }
 
-    private static bool Save(HomeworksCache cache)
+    private bool Save(HomeworksCache cache)
     {
         var json = JsonSerializer.Serialize(cache, new JsonSerializerOptions
         {
@@ -93,16 +98,16 @@ public partial class DiscussionMessagesRepository
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic)
         });
 
-        var path = Path.Combine(BaseDirectory, fileName);
+        var path = Path.Combine(BaseDirectory, _fileName);
         File.WriteAllText(path, json);
 
         return true;
     }
 
-    private static HomeworksCache Get()
+    private HomeworksCache Get()
     {
         var homeworksCache = new HomeworksCache();
-        var path = Path.Combine(BaseDirectory, fileName);
+        var path = Path.Combine(BaseDirectory, _fileName);
 
         if (File.Exists(path))
         {

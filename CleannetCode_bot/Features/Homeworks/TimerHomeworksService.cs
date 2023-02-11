@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Microsoft.Extensions.Options;
+using Telegram.Bot.Types;
 
 namespace CleannetCode_bot.Features.Homeworks;
 
@@ -46,13 +47,36 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
         int count = Interlocked.Increment(ref _executionCount);
         _logger.LogInformation("{Service} is working, execution count: {Count:#,0}", nameof(TimerHomeworksService), count);
 
-        var organizationName = _config.Organizations?[0].OrganizationName;
-        var repositoryName = _config.Organizations?[0].Repositories?[0].RepositoryName;
-        var discussionID = _config.Organizations?[0].Repositories?[0].DiscussionsID?[0] ?? 32;
+        var discussionMessagesRepository = new DiscussionMessagesRepository(_config.FileNameCache ?? "cachedHomeworkMessages0.json");
+        var newListMessage = new List<DiscussionMessages>();
 
-        var allListMessages = await DiscussionMessagesRepository.GetMessagesFromDiscussion(organizationName, repositoryName, discussionID);
-        var newListMessage = DiscussionMessagesRepository.UpdateCacheAndGetNewMessages(organizationName, repositoryName, discussionID, allListMessages);
-        // SendMessages(newListMessage);
+        foreach (var organization in _config.Organizations ?? Array.Empty<Organization>())
+        {
+            foreach (var repository in organization.Repositories ?? Array.Empty<Repository>())
+            {
+                foreach (var discussionID in repository.DiscussionsID ?? Array.Empty<int>())
+                {
+                    var allListMessages = await discussionMessagesRepository.GetMessagesFromDiscussion(
+                        organization.OrganizationName ?? "",
+                        repository.RepositoryName ?? "",
+                        discussionID);
+
+                    newListMessage.AddRange(discussionMessagesRepository.UpdateCacheAndGetNewMessages(
+                        organization.OrganizationName ?? "",
+                        repository.RepositoryName ?? "",
+                        discussionID,
+                        allListMessages));
+                }
+            }
+        }
+
+        foreach (var messagePage in newListMessage)
+        {
+            await _client.SendTextMessageAsync(
+                _config.TelegramChannelID ?? "",
+                $"Author: {messagePage.Author}\n\n {messagePage.Message}"); // messagePage.DatetimeCreateNode
+        }
+
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
