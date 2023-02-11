@@ -1,12 +1,16 @@
 // todo <> section in config
 
 using HtmlAgilityPack;
-using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace CleannetCode_bot.Features.Homeworks;
 
 public partial class DiscussionMessagesRepository
 {
+    private const string fileName = "cachedHomeworkMessages.json";
+    public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
 
     public static async Task<DiscussionMessages[]> GetMessagesFromDiscussion(string organizationName, string repositoryName, int discussionID)
     {
@@ -30,17 +34,18 @@ public partial class DiscussionMessagesRepository
                 var messageNode = discussionPost.SelectSingleNode(".//td[@class=\"d-block color-fg-default comment-body markdown-body js-comment-body\"]");
                 var timestampCreateNode = discussionPost.SelectSingleNode(".//relative-time[not(@datetime='{{datetime}}')]")
                     .GetAttributeValue("datetime", null);
-                // maybe todo: lastEditedTimestampNode = ...;
+                // maybe todo: 
+                // var reactionsNode = ...;
+                // var lastEditedTimestampNode = ...;
+                // var commentsNode = ...;
 
                 var datetimeCreateNode = DateTimeOffset.Parse(timestampCreateNode);
 
                 if (authorNameNode != null && messageNode != null)
                 {
-                    var messageText = RegexDeleteUnicodeSymbols().Replace(messageNode.InnerText, string.Empty);
-
                     discussionMessages.Add(new DiscussionMessages(
                         authorNameNode.InnerText,
-                        messageText,
+                        messageNode.InnerText,
                         datetimeCreateNode));
                 }
             }
@@ -49,8 +54,69 @@ public partial class DiscussionMessagesRepository
         return discussionMessages.ToArray();
     }
 
-    [GeneratedRegex("\\\\u\\d{4}")]
-    private static partial Regex RegexDeleteUnicodeSymbols();
+    public static DiscussionMessages[] UpdateCacheAndGetNewMessages(string organizationName, string repositoryName, int discussionID, DiscussionMessages[] messages)
+    {
+        var newMessages = new List<DiscussionMessages>();
+        var homeworksCache = Get();
+
+        var url = $"https://github.com/{organizationName}/{repositoryName}/discussions/{discussionID}";
+        var discussionData = new DiscussionData() { };
+
+        var isGetDiscussionData = homeworksCache.DiscussionsData?.TryGetValue(url, out discussionData) ?? false;
+
+        if (isGetDiscussionData)
+        {
+            var exceptedMessages = discussionData?.Messages?.Except(messages) ?? new List<DiscussionMessages>();
+            newMessages.AddRange(exceptedMessages.Where(message => messages.Contains(message)));
+        }
+
+        discussionData = new DiscussionData() { Messages = messages.ToList() };
+        if (homeworksCache.DiscussionsData?.ContainsKey(url) ?? false)
+        {
+            homeworksCache.DiscussionsData[url] = discussionData;
+        }
+        else
+        {
+            homeworksCache.DiscussionsData?.Add(url, discussionData);
+        }
+
+        Save(homeworksCache);
+
+        return newMessages.ToArray();
+    }
+
+    private static bool Save(HomeworksCache cache)
+    {
+        var json = JsonSerializer.Serialize(cache, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic)
+        });
+
+        var path = Path.Combine(BaseDirectory, fileName);
+        File.WriteAllText(path, json);
+
+        return true;
+    }
+
+    private static HomeworksCache Get()
+    {
+        var homeworksCache = new HomeworksCache();
+        var path = Path.Combine(BaseDirectory, fileName);
+
+        if (File.Exists(path))
+        {
+            var json = File.ReadAllText(path);
+            homeworksCache = JsonSerializer.Deserialize<HomeworksCache>(json) ??
+                new HomeworksCache() { DiscussionsData = new Dictionary<string, DiscussionData>() };
+        }
+        else
+        {
+            homeworksCache.DiscussionsData = new Dictionary<string, DiscussionData>();
+        }
+
+        return homeworksCache;
+    }
 }
 
 

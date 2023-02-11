@@ -38,15 +38,16 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
 
     public async void DoWork(object? state)
     {
-        int count = Interlocked.Increment(ref _executionCount);
-        _logger.LogInformation("{Service} is working, execution count: {Count:#,0}", nameof(TimerHomeworksService), count);
+        // int count = Interlocked.Increment(ref _executionCount);
+        // _logger.LogInformation("{Service} is working, execution count: {Count:#,0}", nameof(TimerHomeworksService), count);
 
         var organizationName = "cleannetcode";
         var repositoryName = "Index";
         var discussionID = 32;
 
         var allListMessages = await DiscussionMessagesRepository.GetMessagesFromDiscussion(organizationName, repositoryName, discussionID);
-
+        var newListMessage = DiscussionMessagesRepository.UpdateCacheAndGetNewMessages(organizationName, repositoryName, discussionID, allListMessages);
+        // SendMessages(newListMessage);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

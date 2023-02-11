@@ -1,4 +1,5 @@
 using CleannetCode_bot.Features.Forwards;
+using CleannetCode_bot.Features.Homeworks;
 using CleannetCode_bot.Features.Welcome;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,10 +27,10 @@ namespace CleannetCode_bot
                 })
                 .ConfigureServices((context, services) =>
                 {
+                    services.AddHostedService<TimerHomeworksService>();
                     services.AddHostedService<BotService>();
                     services.AddSingleton<WelcomeHandler>();
                     services.AddScoped<IStorageService, StorageFileService>();
-                    services.AddScoped<IStorageService,StorageFileService>();
                     services.AddScoped<IForwardHandler, ForwardsHandler>();
                     services.Configure<ForwardsHandlerOptions>(context.Configuration.GetSection(ForwardsHandlerOptions.Section));
                     services.AddScoped<Handlers>();
