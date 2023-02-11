@@ -4,6 +4,7 @@ using HtmlAgilityPack;
 using System.Text.Json;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using Serilog.Debugging;
 
 namespace CleannetCode_bot.Features.Homeworks;
 
@@ -59,8 +60,13 @@ public class DiscussionMessagesRepository
         return discussionMessages.ToArray();
     }
 
-    public DiscussionMessages[] UpdateCacheAndGetNewMessages(string organizationName, string repositoryName, int discussionID, DiscussionMessages[] messages)
+    public async Task<DiscussionMessages[]> UpdateCacheAndGetNewMessages(string organizationName, string repositoryName, int discussionID)
     {
+        var messages = await GetMessagesFromDiscussion(
+            organizationName,
+            repositoryName,
+            discussionID);
+
         var newMessages = new List<DiscussionMessages>();
         var homeworksCache = Get();
 
@@ -74,18 +80,25 @@ public class DiscussionMessagesRepository
             var exceptedMessages = discussionData?.Messages?.Except(messages) ?? new List<DiscussionMessages>();
             newMessages.AddRange(exceptedMessages.Where(message => messages.Contains(message)));
         }
-
-        discussionData = new DiscussionData() { Messages = messages.ToList() };
-        if (homeworksCache.DiscussionsData?.ContainsKey(url) ?? false)
-        {
-            homeworksCache.DiscussionsData[url] = discussionData;
-        }
         else
         {
-            homeworksCache.DiscussionsData?.Add(url, discussionData);
+            discussionData = new DiscussionData() { Messages = messages.ToList() };
+
+            if (homeworksCache.DiscussionsData?.ContainsKey(url) ?? false)
+            {
+                homeworksCache.DiscussionsData[url] = discussionData;
+            }
+            else
+            {
+                homeworksCache.DiscussionsData?.Add(url, discussionData);
+            }
+
+            Save(homeworksCache);
         }
 
-        Save(homeworksCache);
+
+        if (newMessages.Count != 0)
+            Save(homeworksCache);
 
         return newMessages.ToArray();
     }
