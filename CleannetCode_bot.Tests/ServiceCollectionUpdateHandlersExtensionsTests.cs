@@ -18,7 +18,7 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
     
         // assert
         var handlersMap = serviceCollection
-            .Where(x => x.ServiceType == typeof(Infrastructure.Handlers))
+            .Where(x => x.ImplementationType == typeof(Infrastructure.Handlers))
             .ToArray();
 
         Assert.NotEmpty(handlersMap);
@@ -35,7 +35,7 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
         serviceCollection.AddHandlerChains(testAssembly);
     
         // assert
-        Assert.DoesNotContain(serviceCollection, x => x.ServiceType == typeof(IgnoredTestUpdateHandlerChain));
+        Assert.DoesNotContain(serviceCollection, x => x.ImplementationType == typeof(IgnoredTestUpdateHandlerChain));
     }
 
 
@@ -51,7 +51,7 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
     
         // assert
         var updateHandlers = serviceCollection
-            .Where(x => x.ServiceType == typeof(TestUpdateHandlerChain))
+            .Where(x => x.ImplementationType == typeof(TestUpdateHandlerChain))
             .ToArray();
 
         Assert.NotEmpty(updateHandlers);
@@ -69,7 +69,7 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
     
         // assert
         var updateHandlers = serviceCollection
-            .Where(x => x.ServiceType == typeof(TestUpdateHandlerChain))
+            .Where(x => x.ImplementationType == typeof(TestUpdateHandlerChain))
             .ToArray();
 
         Assert.Empty(updateHandlers);
@@ -86,7 +86,7 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
     
         // assert
         var updateHandlers = serviceCollection
-            .Where(x => x.ServiceType
+            .Where(x => x.ImplementationType
                 .GetInterfaces()
                 .Any(i => i == typeof(IHandlerChain)))
             .ToArray();

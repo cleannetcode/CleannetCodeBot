@@ -18,15 +18,18 @@ public class BotBackgroundService : IHostedService
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ConcurrentBag<Task> _awaitedTasks = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly BotInfoProvider _botInfoProvider;
 
     public BotBackgroundService(
         ILogger<BotBackgroundService> logger,
         ITelegramBotClient client,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory,
+        BotInfoProvider botInfoProvider)
     {
         _logger = logger;
         _client = client;
         _serviceScopeFactory = serviceScopeFactory;
+        _botInfoProvider = botInfoProvider;
     }
 
     public async Task RunAsync()
@@ -53,17 +56,18 @@ public class BotBackgroundService : IHostedService
             }
         };
 
-        var me = await _client.GetMeAsync(_cancellationTokenSource.Token);
+        await _botInfoProvider.InitAsync();
+        var me = _botInfoProvider.GetMe();
 
-        _logger.LogInformation("{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tHey! I am {BotName}", DateTime.Now,
+        _logger.LogInformation(
+            "{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tHey! I am {BotName}", DateTime.Now,
             me.Username);
 
         await _client.ReceiveAsync(
             updateHandler: HandleUpdateAsync,
             pollingErrorHandler: HandlePollingErrorAsync,
             receiverOptions: receiverOptions,
-            cancellationToken: _cancellationTokenSource.Token
-        );
+            cancellationToken: _cancellationTokenSource.Token);
     }
 
     private Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cts)
@@ -98,12 +102,14 @@ public class BotBackgroundService : IHostedService
         }
 
         stopwatch.Stop();
-        updateLogger.LogDebug("Finish serving update of type {Type} with id {Id} elapsed {Elapsed} ms", update.Type,
-            update.Id, stopwatch.ElapsedMilliseconds);
+        updateLogger.LogDebug(
+            message: "Finish serving update of type {Type} with id {Id} elapsed {Elapsed} ms",
+            update.Type,
+            update.Id,
+            stopwatch.ElapsedMilliseconds);
     }
 
-    private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception,
-        CancellationToken cancellationToken)
+    private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
         _logger.LogError(exception, "Telegram API Error {ErrorMessage}", exception.Message);
         return Task.CompletedTask;

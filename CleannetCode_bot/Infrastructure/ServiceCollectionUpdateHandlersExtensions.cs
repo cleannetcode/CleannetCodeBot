@@ -10,17 +10,19 @@ public static class ServiceCollectionUpdateHandlersExtensions
         params Assembly[] selectedAssemblies)
     {
         serviceCollection.AddScoped<Handlers>();
-        
+
         var handlers = selectedAssemblies
             .SelectMany(x => x.GetTypes())
             .Where(type => type.IsInterface == false
-                           && type.GetInterfaces().Any(i => i == typeof(IHandlerChain))
-                           && type.GetCustomAttributes().OfType<IgnoreAutoInjectionAttribute>().Any() == false)
+                && type.GetInterfaces().Any(i => i == typeof(IHandlerChain))
+                && type.GetCustomAttributes().OfType<IgnoreAutoInjectionAttribute>().Any() == false)
             .ToHashSet();
 
         foreach (var handler in handlers)
         {
-            serviceCollection.AddSingleton(handler);
+            serviceCollection.AddSingleton(
+                serviceType: typeof(IHandlerChain),
+                implementationType: handler);
         }
 
         return serviceCollection;
