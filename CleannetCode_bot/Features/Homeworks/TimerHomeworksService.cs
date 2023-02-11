@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
+using Microsoft.Extensions.Options;
 
 namespace CleannetCode_bot.Features.Homeworks;
 
@@ -11,13 +12,17 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
     private int _executionCount = 0;
 
     private readonly ITelegramBotClient _client;
-    private readonly IConfiguration _config;
+    private readonly IOptionsMonitor<HomeworksServiceOptions> _homeworksServiceOptionsMonitor;
     private readonly ILogger<TimerHomeworksService> _logger;
+    private HomeworksServiceOptions _config => _homeworksServiceOptionsMonitor.CurrentValue;
 
-    public TimerHomeworksService(ITelegramBotClient client, IConfiguration config, ILogger<TimerHomeworksService> logger)
+    public TimerHomeworksService(
+        ITelegramBotClient client,
+        IOptionsMonitor<HomeworksServiceOptions> homeworksServiceOptionsMonitor,
+        ILogger<TimerHomeworksService> logger)
     {
         this._client = client;
-        this._config = config;
+        this._homeworksServiceOptionsMonitor = homeworksServiceOptionsMonitor;
         this._logger = logger;
     }
 
@@ -25,7 +30,7 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
     {
         _logger.LogInformation("{Service} is running.", nameof(TimerHomeworksService));
 
-        var delay = _config.GetValue<int?>("CheckTimerHomeworksInMinutes") ?? 120;
+        var delay = _config.CheckTimerInMinutes;
 
         _timer = new Timer(
             DoWork,
@@ -38,12 +43,12 @@ public sealed class TimerHomeworksService : IHostedService, IAsyncDisposable
 
     public async void DoWork(object? state)
     {
-        // int count = Interlocked.Increment(ref _executionCount);
-        // _logger.LogInformation("{Service} is working, execution count: {Count:#,0}", nameof(TimerHomeworksService), count);
+        int count = Interlocked.Increment(ref _executionCount);
+        _logger.LogInformation("{Service} is working, execution count: {Count:#,0}", nameof(TimerHomeworksService), count);
 
-        var organizationName = "cleannetcode";
-        var repositoryName = "Index";
-        var discussionID = 32;
+        var organizationName = _config.Organizations?[0].OrganizationName;
+        var repositoryName = _config.Organizations?[0].Repositories?[0].RepositoryName;
+        var discussionID = _config.Organizations?[0].Repositories?[0].DiscussionsID?[0] ?? 32;
 
         var allListMessages = await DiscussionMessagesRepository.GetMessagesFromDiscussion(organizationName, repositoryName, discussionID);
         var newListMessage = DiscussionMessagesRepository.UpdateCacheAndGetNewMessages(organizationName, repositoryName, discussionID, allListMessages);
