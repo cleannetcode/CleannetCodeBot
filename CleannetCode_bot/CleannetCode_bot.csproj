@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0-dev-00791" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.2.0-dev-00752" />
