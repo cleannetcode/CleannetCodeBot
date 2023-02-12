@@ -21,6 +21,6 @@ public sealed class CallbackQueryHandlerChain : IHandlerChain
         return await Result.SuccessIf(request.Update.Type == UpdateType.CallbackQuery, "Not match type")
             .Bind(() => Result.Success(request.Update.CallbackQuery))
             .Bind(x => Result.FailureIf(x == null, x, null))
-            .Tap(x => _storage.AddObject(x!, typeof(CallbackQuery), "callbackQuery", cancellationToken));
+            .Tap(x => _storage.AddObject(x, typeof(CallbackQuery), "callbackQuery", cancellationToken));
     }
 }
