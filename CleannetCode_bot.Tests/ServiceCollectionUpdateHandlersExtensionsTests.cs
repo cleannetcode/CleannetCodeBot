@@ -1,107 +1,108 @@
+using CleannetCode_bot.Infrastructure;
+using CSharpFunctionalExtensions;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types;
 
-namespace CleannetCode_bot.Tests
+namespace CleannetCode_bot.Tests;
+
+public class ServiceCollectionUpdateHandlersExtensionsTests
 {
-    public class ServiceCollectionUpdateHandlersExtensionsTests
+    [Fact]
+    public void AddUpdateHandlers_ShouldRegisterHandlersMap()
     {
-        [Fact]
-        public void AddUpdateHandlers_ShouldRegisterHandlersMap()
-        {
-            // arrange
-            var serviceCollection= new ServiceCollection();
+        // arrange
+        var serviceCollection= new ServiceCollection();
 
-            // act
-            ServiceCollectionUpdateHandlersExtensions.AddUpdateHandlers(serviceCollection);
+        // act
+        serviceCollection.AddHandlerChains();
     
-            // assert
-            var handlersMap = serviceCollection
-                .Where(x => x.ServiceType == typeof(HandlersMap))
-                .ToArray();
+        // assert
+        var handlersMap = serviceCollection
+            .Where(x => x.ServiceType == typeof(Infrastructure.Handlers))
+            .ToArray();
 
-            Assert.NotEmpty(handlersMap);
-        }
+        Assert.NotEmpty(handlersMap);
+    }
 
-        [Fact]
-        public void AddUpdateHandlers_TestHandlerRegistered_ShouldReturnTestHandler()
-        {
-            // arrange
-            var serviceCollection= new ServiceCollection();
-            var testAssembly = GetType().Assembly;
+    [Fact]
+    public void AddUpdateHandlers_TestHandlerChainRegistered_ShouldReturnTestHandlerChain()
+    {
+        // arrange
+        var serviceCollection= new ServiceCollection();
+        var testAssembly = GetType().Assembly;
 
-            // act
-            ServiceCollectionUpdateHandlersExtensions.AddUpdateHandlers(serviceCollection, testAssembly);
+        // act
+        serviceCollection.AddHandlerChains(testAssembly);
     
-            // assert
-            var updateHandlers = serviceCollection
-                .Where(x => x.ServiceType == typeof(TestUpdateHandler))
-                .ToArray();
+        // assert
+        var updateHandlers = serviceCollection
+            .Where(x => x.ServiceType == typeof(TestUpdateHandlerChain))
+            .ToArray();
 
-            Assert.NotEmpty(updateHandlers);
-        }
+        Assert.NotEmpty(updateHandlers);
+    }
 
-        [Fact]
-        public void AddUpdateHandlers_TestHandlerIsNotRegistered_ShouldNotReturnTestHandler()
-        {
-            // arrange
-            var serviceCollection = new ServiceCollection();
-            var assemblyWithoutUpdateHandlers = typeof(string).Assembly;
+    [Fact]
+    public void AddUpdateHandlers_TestHandlerIsNotRegistered_ShouldNotReturnTestHandler()
+    {
+        // arrange
+        var serviceCollection = new ServiceCollection();
+        var assemblyWithoutUpdateHandlers = typeof(string).Assembly;
 
-            // act
-            ServiceCollectionUpdateHandlersExtensions.AddUpdateHandlers(serviceCollection, assemblyWithoutUpdateHandlers);
+        // act
+        serviceCollection.AddHandlerChains(assemblyWithoutUpdateHandlers);
     
-            // assert
-            var updateHandlers = serviceCollection
-                .Where(x => x.ServiceType == typeof(TestUpdateHandler))
-                .ToArray();
+        // assert
+        var updateHandlers = serviceCollection
+            .Where(x => x.ServiceType == typeof(TestUpdateHandlerChain))
+            .ToArray();
 
-            Assert.Empty(updateHandlers);
-        }
+        Assert.Empty(updateHandlers);
+    }
 
-        [Fact]
-        public void AddUpdateHandlers_UpdateHandlersAreNotRegistered_ShouldNotReturnAnyHandlers()
-        {
-            // arrange
-            var serviceCollection = new ServiceCollection();
+    [Fact]
+    public void AddUpdateHandlers_UpdateHandlersAreNotRegistered_ShouldNotReturnAnyHandlers()
+    {
+        // arrange
+        var serviceCollection = new ServiceCollection();
 
-            // act
-            ServiceCollectionUpdateHandlersExtensions.AddUpdateHandlers(serviceCollection);
+        // act
+        serviceCollection.AddHandlerChains();
     
-            // assert
-            var updateHandlers = serviceCollection
-                .Where(x => x.ServiceType
-                    .GetInterfaces()
-                    .Any(i => i == typeof(IUpdateHandler)))
-                .ToArray();
+        // assert
+        var updateHandlers = serviceCollection
+            .Where(x => x.ServiceType
+                .GetInterfaces()
+                .Any(i => i == typeof(IHandlerChain)))
+            .ToArray();
 
-            Assert.Empty(updateHandlers);
-        }
+        Assert.Empty(updateHandlers);
+    }
         
-        [Fact]
-        public void GetHandlers_ShouldReturnTestUpdateHandler()
-        {
-            // arrange
-            var serviceCollection= new ServiceCollection();
-            var testAssembly = GetType().Assembly;
-            ServiceCollectionUpdateHandlersExtensions
-                .AddUpdateHandlers(serviceCollection, testAssembly);
-            var provider = serviceCollection.BuildServiceProvider();
-            var handlersMap = provider.GetRequiredService<HandlersMap>();
+    [Fact]
+    public async Task GetHandlers_ShouldReturnTestUpdateHandler()
+    {
+        // arrange
+        var serviceCollection= new ServiceCollection();
+        var testAssembly = GetType().Assembly;
+        serviceCollection.AddHandlerChains(testAssembly);
+        var provider = serviceCollection.BuildServiceProvider();
+        var handlers = provider.GetRequiredService<Infrastructure.Handlers>();
+        var update = new Update();
 
-            // act
-            var handlers = handlersMap.GetHandlers(UpdateType.Message);
+        // act
+        var result = await handlers.ExecuteAsync(update, CancellationToken.None);
     
-            // assert
-            Assert.NotEmpty(handlers);
-        }
+        // assert
+        Assert.True(result.IsSuccess);
+    }
 
-        [SupportedUpdateType(UpdateType.Message)]
-        private sealed class TestUpdateHandler : IUpdateHandler
+    private sealed class TestUpdateHandlerChain : IHandlerChain
+    {
+        public int OrderInChain { get; }
+        public Task<Result> HandleAsync(TelegramRequest request, CancellationToken cancellationToken = default)
         {
-            public Task<CSharpFunctionalExtensions.Result> HandleAsync()
-            {
-                throw new NotImplementedException();
-            }
+            return Task.FromResult(Result.Success());
         }
     }
 }

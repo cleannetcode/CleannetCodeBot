@@ -1,11 +1,10 @@
-﻿namespace CleannetCode_bot.Features.Welcome
+﻿namespace CleannetCode_bot.Features.Welcome;
+
+public enum State
 {
-    public enum State
-    {
-        None,
-        Github,
-        Youtube,
-        Position,
-        End
-    }
+    None,
+    Github,
+    Youtube,
+    Position,
+    End
 }

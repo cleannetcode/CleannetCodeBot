@@ -1,16 +1,15 @@
 using Telegram.Bot;
 
-namespace CleannetCode_bot.Features.Forwards
+namespace CleannetCode_bot.Features.Forwards;
+
+public interface IForwardHandler
 {
-    public interface IForwardHandler
-    {
-        Task HandleAsync(
-            long fromChatId,
-            int messageId,
-            bool isTopicMessage,
-            int topicId,
-            long senderId,
-            ITelegramBotClient botClient,
-            CancellationToken ct);
-    }
+    Task HandleAsync(
+        long fromChatId,
+        int messageId,
+        bool isTopicMessage,
+        int topicId,
+        long senderId,
+        ITelegramBotClient botClient,
+        CancellationToken ct);
 }
