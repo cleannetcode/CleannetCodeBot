@@ -14,18 +14,18 @@ namespace CleannetCode_bot.Features.Welcome;
 
 public class WelcomeHandler
 {
-    private readonly JsonSerializerOptions jsonSerializerOptions = new()
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
         WriteIndented = true
     };
 
-    private readonly IConfiguration config;
-    private readonly ILogger<WelcomeHandler> logger;
-    private readonly ITelegramBotClient client;
+    private readonly IConfiguration _config;
+    private readonly ILogger<WelcomeHandler> _logger;
+    private readonly ITelegramBotClient _client;
 
-    private readonly ConcurrentDictionary<long, SemaphoreSlim> writeSemaphoreSlims = new();
-    private readonly ConcurrentDictionary<long, SemaphoreSlim> workWithStateSemaphoreSlims = new();
+    private readonly ConcurrentDictionary<long, SemaphoreSlim> _writeSemaphoreSlims = new();
+    private readonly ConcurrentDictionary<long, SemaphoreSlim> _workWithStateSemaphoreSlims = new();
 
     private static readonly Dictionary<int, Position> Positions = new()
     {
@@ -39,9 +39,9 @@ public class WelcomeHandler
 
     public WelcomeHandler(ITelegramBotClient client, IConfiguration config, ILogger<WelcomeHandler> logger)
     {
-        this.client = client;
-        this.config = config;
-        this.logger = logger;
+        _client = client;
+        _config = config;
+        _logger = logger;
     }
 
     public async Task HandleAnswersAsync(Message message)
@@ -76,12 +76,12 @@ public class WelcomeHandler
                 }
                 return true;
             },
-            workWithStateSemaphoreSlims);
+            _workWithStateSemaphoreSlims);
     }
 
     private async Task HandleGithubAnswerAsync(string text, int messageId, long chatId, WelcomeUserInfo user)
     {
-        var message = await client.SendTextMessageAsync(chatId,
+        var message = await _client.SendTextMessageAsync(chatId,
             $"@{user.Username}, А твой ник на ютьюбе (ответь на это сообщение):",
             replyToMessageId: messageId);
         user = user with { GithubNick = text, YoutubeMessageId = message.MessageId, State = State.Youtube };
@@ -90,7 +90,7 @@ public class WelcomeHandler
 
     private async Task HandleYoutubeAnswerAsync(string text, int messageId, long chatId, WelcomeUserInfo user)
     {
-        var message = await client.SendTextMessageAsync(chatId,
+        var message = await _client.SendTextMessageAsync(chatId,
             $"@{user.Username}, А уровень (Учусь, Стажируюсь, Джуниор, Мидл, Сеньер, Лид) (ответь на это сообщение):",
             replyToMessageId: messageId);
         user = user with { YoutubeNick = text, PositionMessageId = message.MessageId, State = State.Position };
@@ -106,15 +106,15 @@ public class WelcomeHandler
         {
             user = user with { Position = selected, PositionId = selected.Id, State = State.End };
             await SaveAsync(user);
-            await client.SendTextMessageAsync(chatId,
+            await _client.SendTextMessageAsync(chatId,
                 $"@{user.Username}, Анкета успешно собрана! 👌😁👍",
                 replyToMessageId: messageId);
-            logger.LogDebug("Finish taking user survey {Position}", selected);
+            _logger.LogDebug("Finish taking user survey {Position}", selected);
         }
         else
         {
-            logger.LogDebug("Trying to recheck position {Position}", positionAnswer);
-            var message = await client.SendTextMessageAsync(chatId,
+            _logger.LogDebug("Trying to recheck position {Position}", positionAnswer);
+            var message = await _client.SendTextMessageAsync(chatId,
                 $"@{user.Username}, Не понял 🤨. Твой уровень из списка (Учусь, Стажируюсь, Джуниор, Мидл, Сеньер, Лид) (ответь на это сообщение):",
                 replyToMessageId: messageId);
             user = user with { PositionMessageId = message.MessageId };
@@ -133,11 +133,11 @@ public class WelcomeHandler
                     Directory.CreateDirectory(directoryName);
                 await using var fileStream = File.OpenWrite(fileName);
                 fileStream.SetLength(0);
-                await JsonSerializer.SerializeAsync(fileStream, user, jsonSerializerOptions);
-                logger.LogDebug("Saved user {User}", user);
+                await JsonSerializer.SerializeAsync(fileStream, user, _jsonSerializerOptions);
+                _logger.LogDebug("Saved user {User}", user);
                 return true;
             },
-            writeSemaphoreSlims);
+            _writeSemaphoreSlims);
     }
 
     private async Task<WelcomeUserInfo?> ReadAsync(long id)
@@ -148,11 +148,11 @@ public class WelcomeHandler
                 var fileName = GetFileName(id);
                 if (!File.Exists(fileName)) return null;
                 await using var fileStream = File.OpenRead(fileName);
-                var user = await JsonSerializer.DeserializeAsync<WelcomeUserInfo>(fileStream, jsonSerializerOptions);
-                logger.LogDebug("Read user {User}", user);
+                var user = await JsonSerializer.DeserializeAsync<WelcomeUserInfo>(fileStream, _jsonSerializerOptions);
+                _logger.LogDebug("Read user {User}", user);
                 return user;
             },
-            writeSemaphoreSlims);
+            _writeSemaphoreSlims);
     }
 
     private async Task<T> LockAsync<T>(
@@ -162,20 +162,20 @@ public class WelcomeHandler
         [CallerArgumentExpression(nameof(concurrentDictionary))]
         string? lockName = default)
     {
-        logger.LogDebug("Lock {LockName} element with id {Id}", id, lockName ?? "[no lock name]");
+        _logger.LogDebug("Lock {LockName} element with id {Id}", id, lockName ?? "[no lock name]");
         var semaphore = concurrentDictionary.GetOrAdd(id, new SemaphoreSlim(1, 1));
         await semaphore.WaitAsync();
         try { return await action(); }
         finally
         {
             semaphore.Release();
-            logger.LogDebug("Unlock {LockName} element with id {Id}", id, lockName ?? "[no lock name]");
+            _logger.LogDebug("Unlock {LockName} element with id {Id}", id, lockName ?? "[no lock name]");
         }
     }
 
     private string GetFileName(long id)
     {
-        var basePath = config["WelcomesPath"] ?? "Welcomes";
+        var basePath = _config["WelcomesPath"] ?? "Welcomes";
         return Path.Combine(basePath, $"{id.ToString()}.json");
     }
 
@@ -187,7 +187,7 @@ public class WelcomeHandler
             member.FirstName,
             member.LastName ?? string.Empty,
             State: State.Github);
-        var githubMessage = await client.SendTextMessageAsync(chatId,
+        var githubMessage = await _client.SendTextMessageAsync(chatId,
             entities: new[] { new MessageEntity() { Type = MessageEntityType.TextMention, User = member } },
             text: $"Привет! 👀👀👀 @{user.Username}. Твой никнейм в гитхаб (ответь на это сообщение):");
         user = user with { GithubMessageId = githubMessage.MessageId };

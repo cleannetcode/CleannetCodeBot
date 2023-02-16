@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 
 namespace CleannetCode_bot;
 
@@ -40,8 +41,20 @@ public static class Program
                     var accessToken = context.Configuration.GetValue<string>("AccessToken")!;
                     return new(accessToken);
                 });
+                
+                services.AddScoped(LogHandlerChain<CallbackQuery>.Factory("callbackQuery", x => x.Update.CallbackQuery));
+                services.AddScoped(LogHandlerChain<Message>.Factory("channelPost", x => x.Update.ChannelPost));
+                services.AddScoped(LogHandlerChain<ChatJoinRequest>.Factory("chatJoinRequest", x => x.Update.ChatJoinRequest));
+                services.AddScoped(LogHandlerChain<ChatMemberUpdated>.Factory("chatMember", x => x.Update.ChatMember));
+                services.AddScoped(LogHandlerChain<ChosenInlineResult>.Factory("chosenInlineResult", x => x.Update.ChosenInlineResult));
+                services.AddScoped(LogHandlerChain<Message>.Factory("editedChannelPost", x => x.Update.EditedChannelPost));
+                services.AddScoped(LogHandlerChain<Message>.Factory("editedMessage", x => x.Update.EditedMessage));
+                services.AddScoped(LogHandlerChain<InlineQuery>.Factory("inlineQuery", x => x.Update.InlineQuery));
+                services.AddScoped(LogHandlerChain<Message>.Factory("message", x => x.Update.Message));
+                services.AddScoped(LogHandlerChain<ChatMemberUpdated>.Factory("myChatMember", x => x.Update.MyChatMember));
+                services.AddScoped(LogHandlerChain<PollAnswer>.Factory("pollAnswer", x => x.Update.PollAnswer));
 
-                services.AddScoped<IStorageService, StorageFileService>();
+                services.AddScoped<IGenericStorageService, StorageFileService>();
                 services.AddScoped<IForwardHandler, ForwardsHandler>();
                 services.AddScoped<Handlers>();
             })

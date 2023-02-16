@@ -5,40 +5,36 @@ using Microsoft.Extensions.Logging;
 
 namespace CleannetCode_bot.Features.Statistics;
 
-public class StorageFileService : IStorageService
+public class StorageFileService : IGenericStorageService
 {
-    private readonly ILogger<StorageFileService> logger;
-    private static readonly string _directory = "./FileStorage/";
-    private static readonly string _fileName = "data.json";
+    private readonly ILogger<StorageFileService> _logger;
+    private const string Directory = "./FileStorage/";
+    private const string FileSuffix = "data.json";
 
-    private readonly JsonSerializerOptions optionsJson = new();
+    private readonly JsonSerializerOptions _optionsJson = new()
+    {
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All), WriteIndented = true
+    };
 
     public StorageFileService(ILogger<StorageFileService> logger)
     {
-        this.logger = logger;
-
-        optionsJson = new JsonSerializerOptions
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-            WriteIndented = true
-        };
+        _logger = logger;
     }
-    public Task AddObject(object obj, Type type, string methodName, CancellationToken cts)
+
+    private static async Task<string> SaveJsonAsync(string methodName, CancellationToken cts, string json)
     {
-        if (obj is null) return Task.CompletedTask;
-        if (type is null) return Task.CompletedTask;
-        if (methodName is null) return Task.CompletedTask;
+        var dir = $"{Directory}{methodName}/";
+        System.IO.Directory.CreateDirectory(dir);
+        var fileName = $"{DateTime.Now:ddMMyyyy_HHmmss_ffff}-{FileSuffix}";
+        var path = Path.Combine(dir, fileName);
+        await File.WriteAllTextAsync(path, json, cts);
+        return path;
+    }
 
-        var json = JsonSerializer.Serialize(obj, type, optionsJson);
-
-        string dir = $"{_directory}{methodName}/";
-        Directory.CreateDirectory(dir);
-        string fileName = DateTime.Now.ToString("ddMMyyyy_HHmmss_ffff") + "-" + _fileName;
-        string path = Path.Combine(dir, fileName);
-        File.WriteAllTextAsync(path, json, cts);
-
-        logger.LogInformation("{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tnew file created\t{dir}\t{fileName}", DateTime.Now, dir, fileName);
-
-        return Task.CompletedTask;
+    public async Task AddObjectAsync<T>(T obj, string methodName, CancellationToken cancellationToken = default)
+    {
+        var json = JsonSerializer.Serialize(obj, _optionsJson);
+        var path = await SaveJsonAsync(methodName, cancellationToken, json);
+        _logger.LogInformation("New file created {Path}", path);
     }
 }

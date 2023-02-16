@@ -6,7 +6,7 @@ namespace CleannetCode_bot.Infrastructure;
 public class Handlers
 {
     private readonly IReadOnlyCollection<IHandlerChain> _handlerChain;
-    
+
     public Handlers(IEnumerable<IHandlerChain> handlerChain)
     {
         _handlerChain = handlerChain.OrderBy(x => x.OrderInChain).ToList();
