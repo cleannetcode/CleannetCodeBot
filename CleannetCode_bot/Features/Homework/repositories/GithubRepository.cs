@@ -2,7 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-namespace CleannetCode_bot.Features.Homework;
+using CleannetCode_bot.Features.Homework.Models;
+
+namespace CleannetCode_bot.Features.Homework.Repositories;
 public class GithubRepository : IDisposable
 {
     private readonly HttpClient httpClient;

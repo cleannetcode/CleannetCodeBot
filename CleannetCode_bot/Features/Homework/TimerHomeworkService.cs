@@ -2,6 +2,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using CleannetCode_bot.Features.Homework.Models;
+
 namespace CleannetCode_bot.Features.Homework;
 
 public class TimerHomeworkService : BackgroundService
@@ -15,9 +17,9 @@ public class TimerHomeworkService : BackgroundService
         IOptionsMonitor<HomeworkServiceOptions> homeworksServiceOptionsMonitor,
         HomeworkHandler homeworkHandler)
     {
-        this._config = homeworksServiceOptionsMonitor.CurrentValue;
-        this._logger = logger;
-        this._homeworkHandler = homeworkHandler;
+        _config = homeworksServiceOptionsMonitor.CurrentValue;
+        _logger = logger;
+        _homeworkHandler = homeworkHandler;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -42,7 +44,6 @@ public class TimerHomeworkService : BackgroundService
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
-        base.StartAsync(cancellationToken);
         _logger.LogInformation("{Service} is running.", nameof(TimerHomeworkService));
 
         return Task.CompletedTask;
@@ -50,8 +51,6 @@ public class TimerHomeworkService : BackgroundService
 
     public override Task StopAsync(CancellationToken cancellationToken)
     {
-        base.StopAsync(cancellationToken);
-
         _logger.LogInformation("{Service} is stopping.", nameof(TimerHomeworkService));
 
         return Task.CompletedTask;

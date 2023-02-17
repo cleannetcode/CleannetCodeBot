@@ -2,8 +2,6 @@ query {
     repository(owner: $owner, name: $name) {
         discussion(number: $number) {
             comments(first: 100) {
-                totalCount
-
                 nodes {
                     author {
                         login

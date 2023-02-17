@@ -1,5 +1,6 @@
 using CleannetCode_bot.Features.Forwards;
 using CleannetCode_bot.Features.Homework;
+using CleannetCode_bot.Features.Homework.Models;
 using CleannetCode_bot.Features.Welcome;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

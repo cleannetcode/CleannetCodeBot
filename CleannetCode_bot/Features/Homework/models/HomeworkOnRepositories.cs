@@ -1,4 +1,4 @@
-namespace CleannetCode_bot.Features.Homework;
+namespace CleannetCode_bot.Features.Homework.Models;
 
 public record HomeworkOnRepositories
 {

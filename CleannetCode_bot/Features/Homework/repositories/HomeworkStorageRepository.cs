@@ -2,8 +2,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 
-namespace CleannetCode_bot.Features.Homework;
-
+namespace CleannetCode_bot.Features.Homework.Repositories;
 public class HomeworkStorageRepository<T> where T : new()
 {
     private readonly string _fileName;

@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
-namespace CleannetCode_bot.Features.Homework;
+namespace CleannetCode_bot.Features.Homework.Repositories;
 
 public class QueryBuilder
 {

@@ -4,6 +4,9 @@ using Telegram.Bot;
 using System.Linq;
 using Microsoft.Extensions.Options;
 
+using CleannetCode_bot.Features.Homework.Models;
+using CleannetCode_bot.Features.Homework.Repositories;
+
 namespace CleannetCode_bot.Features.Homework;
 
 public class HomeworkHandler
