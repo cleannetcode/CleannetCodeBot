@@ -1,0 +1,13 @@
+query {
+    repository(owner: $owner, name: $name) {
+        defaultBranchRef {
+            target {
+                ... on Commit {
+                    message
+                    pushedDate
+                    url
+                }
+            }
+        }
+    }
+}
