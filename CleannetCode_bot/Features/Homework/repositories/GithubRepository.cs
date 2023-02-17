@@ -14,13 +14,13 @@ public class GithubRepository : IDisposable
         httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
     }
 
-    public static bool IsValidToken(string token)
+    public static async Task<bool> IsValidToken(string token)
     {
         using var tempGithubRepository = new GithubRepository(token);
-        // var tempRepositories = await tempGithubRepository.GetRepositories("github");
-        var tempRepositories = Array.Empty<int>();
 
-        return tempRepositories != null && tempRepositories.Length != 0;
+        var tempRepositories = await tempGithubRepository.GetStargazers("github", "docs");
+
+        return tempRepositories != null && tempRepositories.TotalCount != null;
     }
 
     public async Task<CommentsDiscussions> GetCommentsDiscussions(

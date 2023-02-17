@@ -21,12 +21,12 @@ public class HomeworkHandler
         _config = config.Value;
         _logger = logger;
 
-        // var isValidToken = Task.Run(() => GithubRepository.IsValidToken(_config.GithubToken)).Result;
-        // if (!isValidToken)
-        // {
-        //     _logger.LogError("invalid GithubToken");
-        //     throw new Exception("invalid GithubToken");
-        // }
+        var isValidToken = Task.Run(() => GithubRepository.IsValidToken(_config.GithubToken)).Result;
+        if (!isValidToken)
+        {
+            _logger.LogError("invalid GithubToken");
+            throw new Exception("invalid GithubToken");
+        }
 
         _githubRepository = new GithubRepository(_config.GithubToken);
 
@@ -120,13 +120,6 @@ public class HomeworkHandler
     {
         string pattern = @"[_*~`]";
         return Regex.Replace(dirtyText, pattern, @"\$&");
-
-        // string pattern = @"(?:https://[^\s\\)""<>]+)|([_*~]{1,3})";
-        // string replacement = @""; // = @"\$&"; 
-
-        // return Regex.Replace(dirtyText, pattern, match =>
-        //     match.Groups[1].Success ? Regex.Replace(match.Value, pattern, replacement) : match.Value
-        // );
     }
 
     private async Task<CommentsDiscussions> GetNewDiscussionsComments()
