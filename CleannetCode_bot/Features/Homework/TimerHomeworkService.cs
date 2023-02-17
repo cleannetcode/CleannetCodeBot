@@ -44,6 +44,8 @@ public class TimerHomeworkService : BackgroundService
 
     public override Task StartAsync(CancellationToken cancellationToken)
     {
+        base.StartAsync(cancellationToken);
+
         _logger.LogInformation("{Service} is running.", nameof(TimerHomeworkService));
 
         return Task.CompletedTask;
@@ -51,6 +53,8 @@ public class TimerHomeworkService : BackgroundService
 
     public override Task StopAsync(CancellationToken cancellationToken)
     {
+        base.StopAsync(cancellationToken);
+
         _logger.LogInformation("{Service} is stopping.", nameof(TimerHomeworkService));
 
         return Task.CompletedTask;
