@@ -1,4 +1,6 @@
 using CleannetCode_bot.Features.Forwards;
+using CleannetCode_bot.Features.Homework;
+using CleannetCode_bot.Features.Homework.Models;
 using CleannetCode_bot.Features.Welcome;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,18 +28,20 @@ namespace CleannetCode_bot
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    services.AddHostedService<BotService>();
-                    services.AddSingleton<WelcomeHandler>();
-                    services.AddScoped<IStorageService, StorageFileService>();
-                    services.AddScoped<IStorageService,StorageFileService>();
-                    services.AddScoped<IForwardHandler, ForwardsHandler>();
                     services.Configure<ForwardsHandlerOptions>(context.Configuration.GetSection(ForwardsHandlerOptions.Section));
+                    services.Configure<HomeworkServiceOptions>(context.Configuration.GetSection(HomeworkServiceOptions.Section));
+                    services.AddScoped<IStorageService, StorageFileService>();
+                    services.AddScoped<IForwardHandler, ForwardsHandler>();
                     services.AddScoped<Handlers>();
+                    services.AddSingleton<WelcomeHandler>();
+                    services.AddSingleton<HomeworkHandler>();
                     services.AddSingleton<ITelegramBotClient, TelegramBotClient>(_ =>
                     {
                         var accessToken = context.Configuration.GetValue<string>("AccessToken")!;
                         return new(accessToken);
                     });
+                    services.AddHostedService<TimerHomeworkService>();
+                    services.AddHostedService<BotService>();
                 })
                 .ConfigureLogging((context, logging) =>
                     logging.ClearProviders()
