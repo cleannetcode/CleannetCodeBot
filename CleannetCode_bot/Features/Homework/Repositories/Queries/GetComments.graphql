@@ -1,0 +1,16 @@
+query {
+    repository(owner: $owner, name: $name) {
+        discussion(number: $number) {
+            comments(first: 100) {
+                nodes {
+                    author {
+                        login
+                    }
+                    body
+                    createdAt
+                    databaseId
+                }
+            }
+        }
+    }
+}

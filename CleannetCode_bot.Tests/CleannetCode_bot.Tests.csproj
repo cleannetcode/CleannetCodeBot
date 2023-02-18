@@ -28,7 +28,7 @@
   <ItemGroup>
     <Folder Include="Features\Achievements\" />
     <Folder Include="Features\Forwards\" />
-    <Folder Include="Features\Homeworks\" />
+    <Folder Include="Features\Homework\" />
     <Folder Include="Features\Leaderboard\" />
     <Folder Include="Features\Promotions\" />
     <Folder Include="Features\Suggestions\" />
