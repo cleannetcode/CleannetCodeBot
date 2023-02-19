@@ -13,20 +13,20 @@ namespace CleannetCode_bot;
 
 public class BotBackgroundService : IHostedService
 {
-    private readonly ILogger<BotBackgroundService> _logger;
-    private readonly ITelegramBotClient _client;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ConcurrentBag<Task> _awaitedTasks = new();
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly ILogger<BotBackgroundService> logger;
+    private readonly ITelegramBotClient client;
+    private readonly IServiceScopeFactory serviceScopeFactory;
+    private readonly ConcurrentBag<Task> awaitedTasks = new();
+    private readonly CancellationTokenSource cancellationTokenSource = new();
 
     public BotBackgroundService(
         ILogger<BotBackgroundService> logger,
         ITelegramBotClient client,
         IServiceScopeFactory serviceScopeFactory)
     {
-        _logger = logger;
-        _client = client;
-        _serviceScopeFactory = serviceScopeFactory;
+        this.logger = logger;
+        this.client = client;
+        this.serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task RunAsync()
@@ -53,16 +53,16 @@ public class BotBackgroundService : IHostedService
             }
         };
 
-        var me = await _client.GetMeAsync(_cancellationTokenSource.Token);
+        var me = await client.GetMeAsync(cancellationTokenSource.Token);
 
-        _logger.LogInformation("{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tHey! I am {BotName}", DateTime.Now,
+        logger.LogInformation("{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tHey! I am {BotName}", DateTime.Now,
             me.Username);
 
-        await _client.ReceiveAsync(
+        await client.ReceiveAsync(
             updateHandler: HandleUpdateAsync,
             pollingErrorHandler: HandlePollingErrorAsync,
             receiverOptions: receiverOptions,
-            cancellationToken: _cancellationTokenSource.Token
+            cancellationToken: cancellationTokenSource.Token
         );
     }
 
@@ -73,13 +73,13 @@ public class BotBackgroundService : IHostedService
         // Разобратся с типом getUpdates. Попытаться запросить историю уже прочитанных сообщений: https://core.telegram.org/bots/api#getupdates
         //--------------------------------------------------
 
-        _awaitedTasks.Add(ServeUpdate(update, cts));
+        awaitedTasks.Add(ServeUpdate(update, cts));
         return Task.CompletedTask;
     }
 
     private async Task ServeUpdate(Update update, CancellationToken cts)
     {
-        await using var scope = _serviceScopeFactory.CreateAsyncScope();
+        await using var scope = serviceScopeFactory.CreateAsyncScope();
         var updateLogger = scope.ServiceProvider.GetRequiredService<ILogger<BotBackgroundService>>();
         var handlers = scope.ServiceProvider.GetRequiredService<Infrastructure.Handlers>();
         var stopwatch = Stopwatch.StartNew();
@@ -89,7 +89,7 @@ public class BotBackgroundService : IHostedService
             var result = await handlers.ExecuteAsync(update, cts);
             if (result.IsFailure)
             {
-                updateLogger.LogError("Result Failed: {Error}", result.Error);
+                updateLogger.LogError(result.Error);
             }
         }
         catch (Exception exception)
@@ -105,7 +105,14 @@ public class BotBackgroundService : IHostedService
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Telegram API Error {ErrorMessage}", exception.Message);
+        var errorMessage = exception switch
+        {
+            ApiRequestException apiRequestException
+                => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
+            _ => exception.ToString()
+        };
+
+        logger.LogError(exception, errorMessage);
         return Task.CompletedTask;
     }
 
@@ -116,7 +123,7 @@ public class BotBackgroundService : IHostedService
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _cancellationTokenSource.Cancel();
-        await Task.WhenAll(_awaitedTasks.Select(task => task.WaitAsync(cancellationToken)));
+        cancellationTokenSource.Cancel();
+        await Task.WhenAll(awaitedTasks.Select(task => task.WaitAsync(cancellationToken)));
     }
 }

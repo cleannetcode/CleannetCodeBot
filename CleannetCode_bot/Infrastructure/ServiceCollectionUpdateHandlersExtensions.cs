@@ -9,13 +9,12 @@ public static class ServiceCollectionUpdateHandlersExtensions
         this IServiceCollection serviceCollection,
         params Assembly[] selectedAssemblies)
     {
-        serviceCollection.AddScoped<Handlers>();
+        serviceCollection.AddScoped<Infrastructure.Handlers>();
         
         var handlers = selectedAssemblies
             .SelectMany(x => x.GetTypes())
             .Where(type => type.IsInterface == false
-                           && type.GetInterfaces().Any(i => i == typeof(IHandlerChain))
-                           && type.GetCustomAttributes().OfType<IgnoreAutoInjectionAttribute>().Any() == false)
+                           && type.GetInterfaces().Any(i => i == typeof(IHandlerChain)))
             .ToHashSet();
 
         foreach (var handler in handlers)
