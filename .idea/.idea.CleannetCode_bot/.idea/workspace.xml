@@ -8,28 +8,7 @@
     <projectFile>CleannetCode_bot/CleannetCode_bot.csproj</projectFile>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dcacb269-07f0-4344-93ea-bc8949c1af5a" name="Changes" comment="fix: Add logging">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CleannetCode_bot/.idea/indexLayout.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CleannetCode_bot/.idea/indexLayout.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CleannetCode_bot/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CleannetCode_bot/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/BotBackgroundService.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/BotBackgroundService.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeBotClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeBotClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeBotClientOptions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeBotClientOptions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeBotCommandNames.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeBotCommandNames.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeGithubAnswerHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeGithubAnswerHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeGithubPromptHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeGithubPromptHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeMemberJoinHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeMemberJoinHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomePrivateStartHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomePrivateStartHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeRequestInformationHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeRequestInformationHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeRequestRemoveInformationHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeRequestRemoveInformationHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeStickersBotClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeStickersBotClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeUserInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeUserInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeYoutubeAnswerHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeYoutubeAnswerHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeYoutubePromptHandlerChain.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Features/Welcome/WelcomeYoutubePromptHandlerChain.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Infrastructure/IgnoreAutoInjectionAttribute.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Infrastructure/IgnoreAutoInjectionAttribute.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Infrastructure/ServiceCollectionUpdateHandlersExtensions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Infrastructure/ServiceCollectionUpdateHandlersExtensions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CleannetCode_bot/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/CleannetCode_bot/appsettings.json" afterDir="false" />
-    </list>
+    <list default="true" id="dcacb269-07f0-4344-93ea-bc8949c1af5a" name="Changes" comment="fix: Add logging" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,29 +49,6 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/f89fe7762b7576425dc9fc98165c392a8899763288b25eb1dd4ae4b81ec7c7/Host.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/f9749fe3576a687c3c42f3794cefe8f8d91e62f939c66c0a32dbb3f74255/ManualResetEventSlim.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/CleannetCode_bot/Features/Forwards/ForwardsHandler.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/IWelcomeBotClient.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/IWelcomeBotClient.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeBotClient.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeGithubAnswerHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeGithubPromptHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeMemberJoinHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomePrivateHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomePrivateStartHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeRequestInformationHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeRequestRemoveInformationHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeStartHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeYoutubeAnswerHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Features/Welcome/WelcomeYoutubePromptHandlerChain.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/DataAccess/Interfaces/IGenericRepository.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/DataAccess/Interfaces/IGenericRepository.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/DataAccess/JsonFilesGenericRepository.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/DataAccess/JsonFilesGenericRepository.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/DataAccess/JsonFilesGenericRepositoryOptions.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/Multithreading/Extensions/LockServiceExtensions.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Infrastructure/Multithreading/SemaphoreSlimLockService.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Program.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Program.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/Admin/repositories/cleannetcode/CleannetCode_bot/CleannetCode_bot/Program.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/CleannetCode_bot/appsettings.json" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -118,7 +74,7 @@
     "SONARLINT_PRECOMMIT_ANALYSIS": "true",
     "WebServerToolWindowFactoryState": "false",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.sourceCode.C#",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -168,6 +124,7 @@
       <workItem from="1676638192773" duration="1169000" />
       <workItem from="1676639389578" duration="7793000" />
       <workItem from="1676657474742" duration="12002000" />
+      <workItem from="1676789295312" duration="20000" />
     </task>
     <task id="LOCAL-00001" summary="Fixed stupid errors and mistakes 👍😁">
       <created>1674917143965</created>
@@ -401,6 +358,9 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/../" />
+    </ignored-roots>
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="Fixed stupid errors and mistakes " />
     <MESSAGE value="Refactor and added logging" />
