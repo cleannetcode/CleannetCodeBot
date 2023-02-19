@@ -2,6 +2,10 @@
 using CleannetCode_bot.Features.Statistics;
 using CleannetCode_bot.Features.Welcome;
 using CleannetCode_bot.Infrastructure;
+using CleannetCode_bot.Infrastructure.DataAccess;
+using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
+using CleannetCode_bot.Infrastructure.Multithreading;
+using CleannetCode_bot.Infrastructure.Multithreading.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,7 +45,8 @@ public static class Program
                     var accessToken = context.Configuration.GetValue<string>("AccessToken")!;
                     return new(accessToken);
                 });
-                
+                services.AddSingleton(typeof(IGenericRepository<,>), typeof(JsonFilesGenericRepository<,>));
+                services.AddSingleton(typeof(ILockService<,>), typeof(SemaphoreSlimLockService<,>));
                 services.AddScoped(LogHandlerChain<CallbackQuery>.Factory("callbackQuery", x => x.Update.CallbackQuery));
                 services.AddScoped(LogHandlerChain<Message>.Factory("channelPost", x => x.Update.ChannelPost));
                 services.AddScoped(LogHandlerChain<ChatJoinRequest>.Factory("chatJoinRequest", x => x.Update.ChatJoinRequest));
