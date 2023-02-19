@@ -18,18 +18,15 @@ public class BotBackgroundService : IHostedService
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ConcurrentBag<Task> _awaitedTasks = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly BotInfoProvider _botInfoProvider;
 
     public BotBackgroundService(
         ILogger<BotBackgroundService> logger,
         ITelegramBotClient client,
-        IServiceScopeFactory serviceScopeFactory,
-        BotInfoProvider botInfoProvider)
+        IServiceScopeFactory serviceScopeFactory)
     {
         _logger = logger;
         _client = client;
         _serviceScopeFactory = serviceScopeFactory;
-        _botInfoProvider = botInfoProvider;
     }
 
     public async Task RunAsync()
@@ -56,9 +53,7 @@ public class BotBackgroundService : IHostedService
             }
         };
 
-        await _botInfoProvider.InitAsync();
-        var me = _botInfoProvider.GetMe();
-
+        var me  = await _client.GetMeAsync();
         _logger.LogInformation(
             "{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tHey! I am {BotName}", DateTime.Now,
             me.Username);

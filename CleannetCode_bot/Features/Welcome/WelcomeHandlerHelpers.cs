@@ -9,14 +9,11 @@ public static class WelcomeHandlerHelpers
 {
     public static Result NotMatchingStateResult { get; } = Result.Failure("Not matching state for welcome features handler");
 
-    public static Result CheckAndGetPrivateChatParameters(this TelegramRequest request, out long userId, out string text)
+    public static Result IsPrivateChat(this TelegramRequest request)
     {
-        userId = request.Update.Message?.From?.Id ?? default;
-        text = request.Update.Message?.Text ?? string.Empty;
-
-        if (request.Update.Message is not { Text: {}, From: {}, Chat: { Type: ChatType.Private } })
-            return HandlerResults.NotMatchingType;
-        return Result.Success();
+        return request.Update.Message is not { Text: { }, From: { }, Chat: { Type: ChatType.Private } } 
+            ? HandlerResults.NotMatchingType 
+            : Result.Success();
     }
 
     public static WelcomeUserInfo ParseUser(this User member)

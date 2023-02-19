@@ -4,8 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # User-specific files
-.idea/.idea.CleannetCode_bot/.idea/workspace.xml
-.idea/.idea.CleannetCode_bot/.idea/sonarlint/**
+.idea/
 *.rsuser
 *.suo
 *.user

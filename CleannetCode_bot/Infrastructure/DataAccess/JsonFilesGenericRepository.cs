@@ -45,7 +45,7 @@ public class JsonFilesGenericRepository<TKey, TEntity> : IGenericRepository<TKey
                     cancellationToken: cancellationToken);
                 _logger.LogDebug(
                     message: "Saved with {FileName} with key {TKey} {Key} entity {TEntity} {Entity}",
-                    fileName, _keyTypeName, key, _entityTypeName, entity);
+                    fileName, _keyTypeName.Value, key, _entityTypeName.Value, entity);
                 return false;
             },
             cancellationToken: cancellationToken);
@@ -81,12 +81,12 @@ public class JsonFilesGenericRepository<TKey, TEntity> : IGenericRepository<TKey
                     _logger.LogCritical(
                         exception: jsonException,
                         message: "Json file is invalid {FileName} of with key {TKey} {Key} entity {TEntity}",
-                        fileName, _keyTypeName, key, _entityTypeName);
+                        fileName, _keyTypeName.Value, key, _entityTypeName.Value);
                     return default;
                 }
                 _logger.LogDebug(
                     message: "Read entity with {FileName} with key {TKey} {Key} entity {TEntity} {Entity}",
-                    fileName, _keyTypeName, key, _entityTypeName, entity);
+                    fileName, _keyTypeName.Value, key, _entityTypeName.Value, entity);
                 return entity;
             },
             cancellationToken: cancellationToken);

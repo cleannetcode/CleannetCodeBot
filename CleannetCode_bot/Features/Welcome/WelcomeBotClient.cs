@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using File = System.IO.File;
 
 namespace CleannetCode_bot.Features.Welcome;
 
 public class WelcomeBotClient : IWelcomeBotClient
 {
-    private readonly BotInfoProvider _botInfoProvider;
     private readonly IOptionsMonitor<WelcomeBotClientOptions> _optionsMonitor;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly IWelcomeStickersBotClient _welcomeStickersBotClient;
@@ -15,18 +16,25 @@ public class WelcomeBotClient : IWelcomeBotClient
     public WelcomeBotClient(
         ITelegramBotClient telegramBotClient,
         IOptionsMonitor<WelcomeBotClientOptions> optionsMonitor,
-        IWelcomeStickersBotClient welcomeStickersBotClient,
-        BotInfoProvider botInfoProvider)
+        IWelcomeStickersBotClient welcomeStickersBotClient)
     {
         _telegramBotClient = telegramBotClient;
         _optionsMonitor = optionsMonitor;
         _welcomeStickersBotClient = welcomeStickersBotClient;
-        _botInfoProvider = botInfoProvider;
     }
 
     private WelcomeBotClientOptions Options => _optionsMonitor.CurrentValue;
 
-    private string UrlToBot => $"https://t.me/{_botInfoProvider.GetMe().Username}";
+
+    private static ReplyKeyboardMarkup KeyboardMarkup =>
+        new(
+            new[]
+            {
+                new KeyboardButton(WelcomeBotCommandNames.ChangeGithubInfoCommand),
+                new KeyboardButton(WelcomeBotCommandNames.ChangeYoutubeInfoCommand),
+                new KeyboardButton(WelcomeBotCommandNames.ClearMyInfoCommand),
+                new KeyboardButton(WelcomeBotCommandNames.GetMyInfoCommand)
+            });
 
     public async Task SendWelcomeMessageInCommonChatAsync(
         string username,
@@ -36,7 +44,9 @@ public class WelcomeBotClient : IWelcomeBotClient
     {
         await _welcomeStickersBotClient.SendRandomWelcomeStickerFromSetAsync(chatId: chatId, cancellationToken: cancellationToken);
 
-        var markup = new InlineKeyboardMarkup(InlineKeyboardButton.WithUrl(text: "Ну давай, переходи", url: UrlToBot));
+        var me = await _telegramBotClient.GetMeAsync(cancellationToken: cancellationToken);
+        var urlToBot = $"https://t.me/{me.Username}";
+        var markup = new InlineKeyboardMarkup(InlineKeyboardButton.WithUrl(text: "Ну давай, переходи", url: urlToBot));
 
         await _telegramBotClient.SendTextMessageAsync(
             chatId: chatId,
@@ -74,12 +84,12 @@ public class WelcomeBotClient : IWelcomeBotClient
         long chatId,
         CancellationToken cancellationToken = default)
     {
-        await _telegramBotClient.SendTextMessageAsync(
+        await using var githubNicknameExample = File.OpenRead("github_nickname.png");
+        await _telegramBotClient.SendPhotoAsync(
             chatId: chatId,
-            text:
-            @"Твой никнейм на Github \(профиль должен быть доступ через https://github\.com/\<твой ник\>\)\. Будет использоваться для домашек: ",
+            new InputFile(githubNicknameExample),
+            caption: @"Твой никнейм на Github \(профиль должен быть доступ через https://github\.com/\<твой ник\>\)\. Будет использоваться для домашек: ",
             parseMode: ParseMode.MarkdownV2,
-            disableWebPagePreview: true,
             cancellationToken: cancellationToken);
     }
 
@@ -145,14 +155,6 @@ Youtube: {youtubeName ?? "Не знаю"}\.",
         CancellationToken cancellationToken = default)
     {
         await _welcomeStickersBotClient.SendRandomWelcomeStickerFromSetAsync(chatId: chatId, cancellationToken: cancellationToken);
-        var markup = new ReplyKeyboardMarkup(
-            new[]
-            {
-                new KeyboardButton(WelcomeBotCommandNames.ChangeGithubInfoCommand),
-                new KeyboardButton(WelcomeBotCommandNames.ChangeYoutubeInfoCommand),
-                new KeyboardButton(WelcomeBotCommandNames.ClearMyInfoCommand),
-                new KeyboardButton(WelcomeBotCommandNames.GetMyInfoCommand)
-            });
         await _telegramBotClient.SendTextMessageAsync(
             chatId: chatId,
             text: $@"Снова привет {GetUserLink(username: username, userId: userId)}
@@ -176,7 +178,7 @@ Telegram мы уже получили хе\-хе
 {WelcomeBotCommandNames.ClearMyInfoCommand} \- указать или изменить имя пользователся на Youtube
 {WelcomeBotCommandNames.GetMyInfoCommand} \- указать или изменить ник на Github",
             parseMode: ParseMode.MarkdownV2,
-            replyMarkup: markup,
+            replyMarkup: KeyboardMarkup,
             cancellationToken: cancellationToken);
     }
 

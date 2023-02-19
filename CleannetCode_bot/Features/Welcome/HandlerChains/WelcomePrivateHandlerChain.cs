@@ -24,14 +24,26 @@ public abstract class WelcomePrivateHandlerChain : IHandlerChain
 
     public async Task<Result> HandleAsync(TelegramRequest request, CancellationToken cancellationToken = default)
     {
-        var privateCheck = request.CheckAndGetPrivateChatParameters(userId: out var userId, text: out var text);
-        if (privateCheck.IsFailure) return privateCheck;
+        var privateCheck = request.IsPrivateChat();
+        if (privateCheck.IsFailure)
+        {
+            return privateCheck;
+        }
 
+        var userId = request.Update.Message?.From?.Id ?? default;
         var user = await WelcomeUserInfoRepository.ReadAsync(
             key: userId,
             cancellationToken: cancellationToken);
-        if (user is null || user.State != TargetState) return WelcomeHandlerHelpers.NotMatchingStateResult;
+        if (user is null || user.State != TargetState)
+        {
+            return WelcomeHandlerHelpers.NotMatchingStateResult;
+        }
+        user = user with
+        {
+            PersonalChatId = request.Update.Message!.Chat.Id
+        };
 
+        var text = request.Update.Message?.Text ?? string.Empty;
         return await ProcessUserAsync(
             userId: userId,
             user: user,

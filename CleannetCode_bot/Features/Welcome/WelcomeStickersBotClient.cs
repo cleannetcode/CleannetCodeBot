@@ -27,8 +27,7 @@ public class WelcomeStickersBotClient : IWelcomeStickersBotClient
         }
 
         var index = Random.Shared.Next(minValue: 0, maxValue: _stickersPickedToRandomSending.Length);
-        var randomPickedSticker = _stickersPickedToRandomSending[
-            index];
+        var randomPickedSticker = _stickersPickedToRandomSending[index];
         await _telegramBotClient.SendStickerAsync(
             chatId: chatId,
             sticker: new InputFileId(randomPickedSticker),

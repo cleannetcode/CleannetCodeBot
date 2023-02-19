@@ -17,7 +17,8 @@ public class JsonFilesGenericRepositoryOptions<TKey, TEntity>
 
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new()
     {
-        Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic), WriteIndented = true
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic), 
+        WriteIndented = true
     };
 
     public string BasePath { get; set; }
