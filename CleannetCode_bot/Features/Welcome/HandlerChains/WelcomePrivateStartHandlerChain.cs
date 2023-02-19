@@ -3,18 +3,18 @@ using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
 public class WelcomePrivateStartHandlerChain : IHandlerChain
 {
-    private readonly ILogger<WelcomeGithubAnswerHandlerChain> _logger;
+    private readonly ILogger<WelcomePrivateStartHandlerChain> _logger;
     private readonly IWelcomeBotClient _welcomeBotClient;
     private readonly IGenericRepository<long, WelcomeUserInfo> _welcomeUserInfoRepository;
 
     public WelcomePrivateStartHandlerChain(
         IWelcomeBotClient welcomeBotClient,
         IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<WelcomeGithubAnswerHandlerChain> logger)
+        ILogger<WelcomePrivateStartHandlerChain> logger)
     {
         _welcomeBotClient = welcomeBotClient;
         _welcomeUserInfoRepository = welcomeUserInfoRepository;

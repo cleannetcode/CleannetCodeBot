@@ -2,23 +2,23 @@ using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
-public class WelcomeYoutubePromptHandlerChain : WelcomePrivateHandlerChain
+public class WelcomeYoutubeAnswerHandlerChain : WelcomePrivateHandlerChain
 {
-    private readonly ILogger<WelcomeGithubAnswerHandlerChain> _logger;
+    private readonly ILogger<WelcomeYoutubeAnswerHandlerChain> _logger;
 
-    public WelcomeYoutubePromptHandlerChain(
+    public WelcomeYoutubeAnswerHandlerChain(
         IWelcomeBotClient welcomeBotClient,
         IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<WelcomeGithubAnswerHandlerChain> logger) : base(
+        ILogger<WelcomeYoutubeAnswerHandlerChain> logger) : base(
         welcomeBotClient: welcomeBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
     }
 
-    protected override WelcomeUserInfoState TargetState => WelcomeUserInfoState.Idle;
+    protected override WelcomeUserInfoState TargetState => WelcomeUserInfoState.AskingYoutube;
 
     protected async override Task<Result> ProcessUserAsync(
         long userId,
@@ -26,21 +26,17 @@ public class WelcomeYoutubePromptHandlerChain : WelcomePrivateHandlerChain
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.ChangeYoutubeInfoCommand)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
-
         await WelcomeUserInfoRepository.SaveAsync(
             key: userId,
             entity: user with
             {
-                State = WelcomeUserInfoState.AskingYoutube
+                YoutubeName = text, State = WelcomeUserInfoState.Idle
             },
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendYoutubePromptAsync(
+        await WelcomeBotClient.SendYoutubeConfirmedAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
-        // TODO: Сделать проверку на существование профиля в Github
-        _logger.LogInformation(message: "{Result}", "Success youtube prompt");
+        _logger.LogInformation(message: "{Result}", "Success youtube answer handling");
         return Result.Success();
     }
 }

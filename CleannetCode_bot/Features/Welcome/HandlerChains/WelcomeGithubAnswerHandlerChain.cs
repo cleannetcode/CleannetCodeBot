@@ -2,13 +2,13 @@ using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
-public class WelcomeRequestInformationHandlerChain : WelcomePrivateHandlerChain
+public class WelcomeGithubAnswerHandlerChain : WelcomePrivateHandlerChain
 {
     private readonly ILogger<WelcomeGithubAnswerHandlerChain> _logger;
 
-    public WelcomeRequestInformationHandlerChain(
+    public WelcomeGithubAnswerHandlerChain(
         IWelcomeBotClient welcomeBotClient,
         IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
         ILogger<WelcomeGithubAnswerHandlerChain> logger) : base(
@@ -18,7 +18,7 @@ public class WelcomeRequestInformationHandlerChain : WelcomePrivateHandlerChain
         _logger = logger;
     }
 
-    protected override WelcomeUserInfoState TargetState => WelcomeUserInfoState.Idle;
+    protected override WelcomeUserInfoState TargetState => WelcomeUserInfoState.AskingGithub;
 
     protected async override Task<Result> ProcessUserAsync(
         long userId,
@@ -26,15 +26,18 @@ public class WelcomeRequestInformationHandlerChain : WelcomePrivateHandlerChain
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.GetMyInfoCommand)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
-        await WelcomeBotClient.SendInformationAsync(
-            chatId: user.PersonalChatId!.Value,
-            username: user.Username,
-            githubNick: user.GithubNick,
-            youtubeName: user.YoutubeName,
+        await WelcomeUserInfoRepository.SaveAsync(
+            key: userId,
+            entity: user with
+            {
+                GithubNick = text, State = WelcomeUserInfoState.Idle
+            },
             cancellationToken: cancellationToken);
-        _logger.LogInformation(message: "{Result}", "Success return information");
+        await WelcomeBotClient.SendGithubConfirmedAsync(
+            chatId: user.PersonalChatId!.Value,
+            cancellationToken: cancellationToken);
+        // TODO: Сделать проверку на существование профиля в Github
+        _logger.LogInformation(message: "{Result}", "Success github answer handling");
         return Result.Success();
     }
 }

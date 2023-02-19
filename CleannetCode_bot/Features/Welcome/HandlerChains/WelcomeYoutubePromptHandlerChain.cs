@@ -2,16 +2,16 @@ using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
-public class WelcomeGithubPromptHandlerChain : WelcomePrivateHandlerChain
+public class WelcomeYoutubePromptHandlerChain : WelcomePrivateHandlerChain
 {
-    private readonly ILogger<WelcomeGithubAnswerHandlerChain> _logger;
+    private readonly ILogger<WelcomeYoutubePromptHandlerChain> _logger;
 
-    public WelcomeGithubPromptHandlerChain(
+    public WelcomeYoutubePromptHandlerChain(
         IWelcomeBotClient welcomeBotClient,
         IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<WelcomeGithubAnswerHandlerChain> logger) : base(
+        ILogger<WelcomeYoutubePromptHandlerChain> logger) : base(
         welcomeBotClient: welcomeBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
@@ -26,20 +26,21 @@ public class WelcomeGithubPromptHandlerChain : WelcomePrivateHandlerChain
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.ChangeGithubInfoCommand)
+        if (text != WelcomeBotCommandNames.ChangeYoutubeInfoCommand)
             return WelcomeHandlerHelpers.NotMatchingStateResult;
 
         await WelcomeUserInfoRepository.SaveAsync(
             key: userId,
             entity: user with
             {
-                State = WelcomeUserInfoState.AskingGithub
+                State = WelcomeUserInfoState.AskingYoutube
             },
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendGithubPromptAsync(
+        await WelcomeBotClient.SendYoutubePromptAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
-        _logger.LogInformation(message: "{Result}", "Success github prompt");
+        // TODO: Сделать проверку на существование профиля в Github
+        _logger.LogInformation(message: "{Result}", "Success youtube prompt");
         return Result.Success();
     }
 }

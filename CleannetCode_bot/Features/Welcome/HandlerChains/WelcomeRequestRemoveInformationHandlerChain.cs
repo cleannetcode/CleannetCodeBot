@@ -2,16 +2,16 @@ using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
 public class WelcomeRequestRemoveInformationHandlerChain : WelcomePrivateHandlerChain
 {
-    private readonly ILogger<WelcomeGithubAnswerHandlerChain> _logger;
+    private readonly ILogger<WelcomeRequestRemoveInformationHandlerChain> _logger;
 
     public WelcomeRequestRemoveInformationHandlerChain(
         IWelcomeBotClient welcomeBotClient,
         IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<WelcomeGithubAnswerHandlerChain> logger) : base(
+        ILogger<WelcomeRequestRemoveInformationHandlerChain> logger) : base(
         welcomeBotClient: welcomeBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {

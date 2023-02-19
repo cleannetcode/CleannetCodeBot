@@ -5,18 +5,18 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
 public class WelcomeMemberJoinHandlerChain : IHandlerChain
 {
-    private readonly ILogger<WelcomeGithubAnswerHandlerChain> _logger;
+    private readonly ILogger<WelcomeMemberJoinHandlerChain> _logger;
     private readonly IWelcomeBotClient _welcomeBotClient;
     private readonly IGenericRepository<long, WelcomeUserInfo> _welcomeUserInfoRepository;
 
     public WelcomeMemberJoinHandlerChain(
         IWelcomeBotClient welcomeBotClient,
         IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<WelcomeGithubAnswerHandlerChain> logger)
+        ILogger<WelcomeMemberJoinHandlerChain> logger)
     {
         _welcomeBotClient = welcomeBotClient;
         _welcomeUserInfoRepository = welcomeUserInfoRepository;
@@ -49,11 +49,6 @@ public class WelcomeMemberJoinHandlerChain : IHandlerChain
         User member,
         CancellationToken cancellationToken)
     {
-        // var user = await _welcomeUserInfoRepository.ReadAsync(
-        //     key: member.Id,
-        //     cancellationToken: cancellationToken);
-        // if (user is not null) return WelcomeHandlerHelpers.NotMatchingStateResult;
-
         var user = member.ParseUser();
 
         await _welcomeUserInfoRepository.SaveAsync(

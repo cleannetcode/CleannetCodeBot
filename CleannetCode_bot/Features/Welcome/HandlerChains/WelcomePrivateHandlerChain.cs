@@ -2,7 +2,7 @@ using CleannetCode_bot.Infrastructure;
 using CleannetCode_bot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 
-namespace CleannetCode_bot.Features.Welcome;
+namespace CleannetCode_bot.Features.Welcome.HandlerChains;
 
 [IgnoreAutoInjection]
 public abstract class WelcomePrivateHandlerChain : IHandlerChain
