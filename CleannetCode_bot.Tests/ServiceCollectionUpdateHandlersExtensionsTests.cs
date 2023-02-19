@@ -25,6 +25,21 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
     }
 
     [Fact]
+    public void AddUpdateHandlers_IgnoredTestHandlerChainRegistered_ShouldNotReturnIgnoredTestHandlerChain()
+    {
+        // arrange
+        var serviceCollection= new ServiceCollection();
+        var testAssembly = GetType().Assembly;
+
+        // act
+        serviceCollection.AddHandlerChains(testAssembly);
+    
+        // assert
+        Assert.DoesNotContain(serviceCollection, x => x.ServiceType == typeof(IgnoredTestUpdateHandlerChain));
+    }
+
+
+    [Fact]
     public void AddUpdateHandlers_TestHandlerChainRegistered_ShouldReturnTestHandlerChain()
     {
         // arrange
@@ -98,6 +113,16 @@ public class ServiceCollectionUpdateHandlersExtensionsTests
     }
 
     private sealed class TestUpdateHandlerChain : IHandlerChain
+    {
+        public int OrderInChain { get; }
+        public Task<Result> HandleAsync(TelegramRequest request, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Result.Success());
+        }
+    }
+    
+    [IgnoreAutoInjection]
+    private sealed class IgnoredTestUpdateHandlerChain : IHandlerChain
     {
         public int OrderInChain { get; }
         public Task<Result> HandleAsync(TelegramRequest request, CancellationToken cancellationToken = default)
