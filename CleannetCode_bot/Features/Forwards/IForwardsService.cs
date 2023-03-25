@@ -2,7 +2,7 @@ using Telegram.Bot;
 
 namespace CleannetCode_bot.Features.Forwards;
 
-public interface IForwardHandler
+public interface IForwardsService
 {
     Task HandleAsync(
         long fromChatId,

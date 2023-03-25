@@ -4,14 +4,14 @@ using Telegram.Bot;
 
 namespace CleannetCode_bot.Features.Forwards;
 
-public class ForwardsHandler : IForwardHandler
+public class ForwardsService : IForwardsService
 {
     private readonly IOptionsMonitor<ForwardsHandlerOptions> _forwardsHandlerOptionsMonitor;
-    private readonly ILogger<ForwardsHandler> _logger;
+    private readonly ILogger<ForwardsService> _logger;
 
-    public ForwardsHandler(
+    public ForwardsService(
         IOptionsMonitor<ForwardsHandlerOptions> forwardsHandlerOptionsMonitor,
-        ILogger<ForwardsHandler> logger)
+        ILogger<ForwardsService> logger)
     {
         _forwardsHandlerOptionsMonitor = forwardsHandlerOptionsMonitor;
         _logger = logger;
@@ -28,7 +28,7 @@ public class ForwardsHandler : IForwardHandler
         ITelegramBotClient botClient,
         CancellationToken ct)
     {
-        var logPrefix = $"message: {messageId}, chat: {fromChatId}, topic: {topicId}, handler: {nameof(ForwardsHandler)};";
+        var logPrefix = $"message: {messageId}, chat: {fromChatId}, topic: {topicId}, handler: {nameof(ForwardsService)};";
 
         _logger.LogDebug("{Prefix:l}", logPrefix);
         if (!isTopicMessage
