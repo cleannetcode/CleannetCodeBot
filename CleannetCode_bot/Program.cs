@@ -36,6 +36,8 @@ public static class Program
                             return new(accessToken);
                         });
 
+                    services.AddScoped<IForwardsService, ForwardsService>();
+
                     services.AddSingleton(serviceType: typeof(ILockService<,>), implementationType: typeof(SemaphoreSlimLockService<,>));
                     services.AddSingleton(serviceType: typeof(IGenericRepository<,>), implementationType: typeof(JsonFilesGenericRepository<,>));
                     services.Configure<JsonFilesGenericRepositoryOptions<long, WelcomeUserInfo>>(
