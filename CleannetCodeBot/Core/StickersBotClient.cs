@@ -1,16 +1,17 @@
+using CleannetCodeBot.Features.Welcome;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace CleannetCodeBot.Features.Welcome;
+namespace CleannetCodeBot.Core;
 
-public class WelcomeStickersBotClient : IWelcomeStickersBotClient
+public class StickersBotClient : IStickersBotClient
 {
     private readonly IOptionsMonitor<WelcomeBotClientOptions> _optionsMonitor;
     private readonly ITelegramBotClient _telegramBotClient;
     private string[] _stickersPickedToRandomSending = Array.Empty<string>();
 
-    public WelcomeStickersBotClient(ITelegramBotClient telegramBotClient, IOptionsMonitor<WelcomeBotClientOptions> optionsMonitor)
+    public StickersBotClient(ITelegramBotClient telegramBotClient, IOptionsMonitor<WelcomeBotClientOptions> optionsMonitor)
     {
         _telegramBotClient = telegramBotClient;
         _optionsMonitor = optionsMonitor;

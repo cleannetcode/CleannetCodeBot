@@ -1,18 +1,19 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class GithubPromptHandlerChain : WelcomePrivateHandlerChain
+public class GithubPromptHandlerChain : OnboardingHandlerChainBase
 {
     private readonly ILogger<GithubPromptHandlerChain> _logger;
 
     public GithubPromptHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository,
         ILogger<GithubPromptHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
+        onboardingBotClient: onboardingBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
@@ -22,12 +23,12 @@ public class GithubPromptHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.ChangeGithubInfoCommand)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
+        if (text != OnboardingBotCommands.ChangeGithubInfoCommand)
+            return Errors.NotMatchingStateResult();
 
         await WelcomeUserInfoRepository.SaveAsync(
             key: userId,
@@ -36,7 +37,7 @@ public class GithubPromptHandlerChain : WelcomePrivateHandlerChain
                 State = WelcomeUserInfoState.AskingGithub
             },
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendGithubPromptAsync(
+        await OnboardingBotClient.SendGithubPromptAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         _logger.LogInformation(message: "{Result}", "Success github prompt");

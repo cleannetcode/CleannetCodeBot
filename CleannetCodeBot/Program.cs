@@ -1,4 +1,5 @@
-﻿using CleannetCodeBot.Features.Forwards;
+﻿using CleannetCodeBot.Core;
+using CleannetCodeBot.Features.Forwards;
 using CleannetCodeBot.Features.Statistics;
 using CleannetCodeBot.Features.Welcome;
 using CleannetCodeBot.Infrastructure;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -36,14 +38,21 @@ public static class Program
                             return new(accessToken);
                         });
 
+                    services.AddSingleton<IMongoDatabase>(_ =>
+                    {
+                        var connectionString = context.Configuration.GetValue<string>("MongoDbConnectionString")!;
+                        var client = new MongoClient(connectionString);
+                        return client.GetDatabase("CleanCodeBotDb");
+                    });
+
                     services.AddSingleton(serviceType: typeof(ILockService<,>), implementationType: typeof(SemaphoreSlimLockService<,>));
                     services.AddSingleton(serviceType: typeof(IGenericRepository<,>), implementationType: typeof(JsonFilesGenericRepository<,>));
-                    services.Configure<JsonFilesGenericRepositoryOptions<long, WelcomeUserInfo>>(
-                        context.Configuration.GetSection(JsonFilesGenericRepositoryOptions<long, WelcomeUserInfo>.GetSectionName()));
+                    services.Configure<JsonFilesGenericRepositoryOptions<long, Member>>(
+                        context.Configuration.GetSection(JsonFilesGenericRepositoryOptions<long, Member>.GetSectionName()));
                     services.Configure<ForwardsHandlerOptions>(context.Configuration.GetSection(ForwardsHandlerOptions.Section));
                     services.Configure<WelcomeBotClientOptions>(context.Configuration.GetSection(WelcomeBotClientOptions.Section));
 
-                    services.AddSingleton<IWelcomeStickersBotClient, WelcomeStickersBotClient>();
+                    services.AddSingleton<IStickersBotClient, StickersBotClient>();
                     services.AddSingleton<IWelcomeBotClient, WelcomeBotClient>();
 
                     services.AddScoped(

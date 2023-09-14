@@ -1,18 +1,19 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class RequestRemoveInformationHandlerChain : WelcomePrivateHandlerChain
+public class RemoveUserInfoHandlerChain : OnboardingHandlerChainBase
 {
-    private readonly ILogger<RequestRemoveInformationHandlerChain> _logger;
+    private readonly ILogger<RemoveUserInfoHandlerChain> _logger;
 
-    public RequestRemoveInformationHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<RequestRemoveInformationHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
+    public RemoveUserInfoHandlerChain(
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository,
+        ILogger<RemoveUserInfoHandlerChain> logger) : base(
+        onboardingBotClient: onboardingBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
@@ -22,14 +23,14 @@ public class RequestRemoveInformationHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.ClearMyInfoCommand)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
+        if (text != OnboardingBotCommands.ClearMyInfoCommand)
+            return Errors.NotMatchingStateResult();
         await WelcomeUserInfoRepository.RemoveAsync(key: userId, cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendInformationRemovedSuccessfulAsync(
+        await OnboardingBotClient.SendInformationRemovedSuccessfulAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         _logger.LogInformation(message: "{Result}", "Success information remove");

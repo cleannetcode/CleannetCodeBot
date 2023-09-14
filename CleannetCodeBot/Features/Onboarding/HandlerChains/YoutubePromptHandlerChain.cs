@@ -1,18 +1,19 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class YoutubePromptHandlerChain : WelcomePrivateHandlerChain
+public class YoutubePromptHandlerChain : OnboardingHandlerChainBase
 {
     private readonly ILogger<YoutubePromptHandlerChain> _logger;
 
     public YoutubePromptHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository,
         ILogger<YoutubePromptHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
+        onboardingBotClient: onboardingBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
@@ -22,12 +23,12 @@ public class YoutubePromptHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.ChangeYoutubeInfoCommand)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
+        if (text != OnboardingBotCommands.ChangeYoutubeInfoCommand)
+            return Errors.NotMatchingStateResult();
 
         await WelcomeUserInfoRepository.SaveAsync(
             key: userId,
@@ -36,7 +37,7 @@ public class YoutubePromptHandlerChain : WelcomePrivateHandlerChain
                 State = WelcomeUserInfoState.AskingYoutube
             },
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendYoutubePromptAsync(
+        await OnboardingBotClient.SendYoutubePromptAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         // TODO: Сделать проверку на существование профиля в Github

@@ -1,18 +1,19 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class GithubAnswerHandlerChain : WelcomePrivateHandlerChain
+public class GithubAnswerHandlerChain : OnboardingHandlerChainBase
 {
     private readonly ILogger<GithubAnswerHandlerChain> _logger;
 
     public GithubAnswerHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository,
         ILogger<GithubAnswerHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
+        onboardingBotClient: onboardingBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
@@ -22,7 +23,7 @@ public class GithubAnswerHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
@@ -33,7 +34,7 @@ public class GithubAnswerHandlerChain : WelcomePrivateHandlerChain
                 GithubNick = text, State = WelcomeUserInfoState.Idle
             },
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendGithubConfirmedAsync(
+        await OnboardingBotClient.SendGithubConfirmedAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         // TODO: Сделать проверку на существование профиля в Github

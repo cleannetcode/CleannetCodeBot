@@ -1,52 +1,26 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace CleannetCodeBot.Features.Welcome.HandlerChains;
 
-public class CommunityInfoHandlerChain : WelcomePrivateHandlerChain
-{
-    public CommunityInfoHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository)
-        : base(
-            welcomeBotClient,
-            welcomeUserInfoRepository)
-    {
-    }
-
-    protected override WelcomeUserInfoState TargetState { get; }
-
-    protected override async Task<Result> ProcessUserAsync(long userId, WelcomeUserInfo user, string text, CancellationToken cancellationToken)
-    {
-        if (text != WelcomeBotCommandNames.ShowCommunityInfo)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
-
-        await WelcomeBotClient.SendWelcomeMessageInPersonalChatAsync(
-            username: user.Username,
-            userId: user.Id,
-            chatId: user.PersonalChatId!.Value,
-            cancellationToken: cancellationToken);
-        return Result.Success();
-    }
-}
-
 public class MemberJoinHandlerChain : IHandlerChain
 {
     private readonly ILogger<MemberJoinHandlerChain> _logger;
     private readonly IWelcomeBotClient _welcomeBotClient;
-    private readonly IGenericRepository<long, WelcomeUserInfo> _welcomeUserInfoRepository;
+    private readonly IMongoCollection<Member> _membersCollection;
 
     public MemberJoinHandlerChain(
         IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IMongoDatabase mongoDatabase,
         ILogger<MemberJoinHandlerChain> logger)
     {
         _welcomeBotClient = welcomeBotClient;
-        _welcomeUserInfoRepository = welcomeUserInfoRepository;
+        _membersCollection = mongoDatabase.GetCollection<Member>(Member.CollectionName);
         _logger = logger;
     }
 
@@ -56,7 +30,7 @@ public class MemberJoinHandlerChain : IHandlerChain
     {
         if (request.Update.ChatMember is { NewChatMember: { Status: ChatMemberStatus.Member, User: { } } } chatMember)
         {
-            await ProcessUserAsync(chatId: chatMember.Chat.Id, member: chatMember.NewChatMember.User, cancellationToken: cancellationToken);
+            await ProcessUserAsync(chatId: chatMember.Chat.Id, user: chatMember.NewChatMember.User, cancellationToken: cancellationToken);
             return Result.Success();
         }
 
@@ -65,7 +39,7 @@ public class MemberJoinHandlerChain : IHandlerChain
             var results = new List<Result>(message.NewChatMembers.Length);
             foreach (var user in message.NewChatMembers)
             {
-                results.Add(await ProcessUserAsync(chatId: message.Chat.Id, member: user, cancellationToken: cancellationToken));
+                results.Add(await ProcessUserAsync(chatId: message.Chat.Id, user: user, cancellationToken: cancellationToken));
             }
 
             return Result.Combine(results);
@@ -76,15 +50,19 @@ public class MemberJoinHandlerChain : IHandlerChain
 
     private async Task<Result> ProcessUserAsync(
         long chatId,
-        User member,
+        User user,
         CancellationToken cancellationToken)
     {
-        var user = member.ParseUser();
+        var member = new Member(
+            id: user.Id,
+            username: user.Username,
+            firstName: user.FirstName,
+            lastName: user.LastName ?? "",
+            started: true,
+            personalChatId: chatId
+        );
 
-        await _welcomeUserInfoRepository.SaveAsync(
-            key: user.Id,
-            entity: user,
-            cancellationToken: cancellationToken);
+        await _membersCollection.InsertOneAsync(member, cancellationToken: cancellationToken);
         await _welcomeBotClient.SendWelcomeMessageInCommonChatAsync(
             userId: user.Id,
             username: user.Username,

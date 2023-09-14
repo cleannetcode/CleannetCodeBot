@@ -1,6 +1,6 @@
-namespace CleannetCodeBot.Features.Welcome;
+namespace CleannetCodeBot.Features.Onboarding;
 
-public class WelcomeBotCommandNames
+public class OnboardingBotCommands
 {
     public const string GetMyInfoCommand = "/getmyinfo";
     public const string ClearMyInfoCommand = "/clearmyinfo";

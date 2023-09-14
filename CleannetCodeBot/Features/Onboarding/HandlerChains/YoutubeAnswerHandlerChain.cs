@@ -1,18 +1,19 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class YoutubeAnswerHandlerChain : WelcomePrivateHandlerChain
+public class YoutubeAnswerHandlerChain : OnboardingHandlerChainBase
 {
     private readonly ILogger<YoutubeAnswerHandlerChain> _logger;
 
     public YoutubeAnswerHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository,
         ILogger<YoutubeAnswerHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
+        onboardingBotClient: onboardingBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
@@ -22,7 +23,7 @@ public class YoutubeAnswerHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
@@ -33,7 +34,7 @@ public class YoutubeAnswerHandlerChain : WelcomePrivateHandlerChain
                 YoutubeName = text, State = WelcomeUserInfoState.Idle
             },
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendYoutubeConfirmedAsync(
+        await OnboardingBotClient.SendYoutubeConfirmedAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         _logger.LogInformation(message: "{Result}", "Success youtube answer handling");

@@ -1,18 +1,19 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class RequestInformationHandlerChain : WelcomePrivateHandlerChain
+public class GetUserInfoHandlerChain : OnboardingHandlerChainBase
 {
-    private readonly ILogger<RequestInformationHandlerChain> _logger;
+    private readonly ILogger<GetUserInfoHandlerChain> _logger;
 
-    public RequestInformationHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
-        ILogger<RequestInformationHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
+    public GetUserInfoHandlerChain(
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository,
+        ILogger<GetUserInfoHandlerChain> logger) : base(
+        onboardingBotClient: onboardingBotClient,
         welcomeUserInfoRepository: welcomeUserInfoRepository)
     {
         _logger = logger;
@@ -22,13 +23,13 @@ public class RequestInformationHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
-        if (text != WelcomeBotCommandNames.GetMyInfoCommand)
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
-        await WelcomeBotClient.SendInformationAsync(
+        if (text != OnboardingBotCommands.GetMyInfoCommand)
+            return Errors.NotMatchingStateResult();
+        await OnboardingBotClient.SendInformationAsync(
             chatId: user.PersonalChatId!.Value,
             username: user.Username,
             githubNick: user.GithubNick,

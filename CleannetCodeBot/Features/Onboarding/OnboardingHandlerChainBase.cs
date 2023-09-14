@@ -1,20 +1,20 @@
+using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure;
 using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding;
 
-[IgnoreAutoInjection]
-public abstract class WelcomePrivateHandlerChain : IHandlerChain
+public abstract class OnboardingHandlerChainBase : IHandlerChain
 {
-    protected readonly IWelcomeBotClient WelcomeBotClient;
-    protected readonly IGenericRepository<long, WelcomeUserInfo> WelcomeUserInfoRepository;
+    protected readonly IOnboardingBotClient OnboardingBotClient;
+    protected readonly IGenericRepository<long, Member> WelcomeUserInfoRepository;
 
-    protected WelcomePrivateHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository)
+    protected OnboardingHandlerChainBase(
+        IOnboardingBotClient onboardingBotClient,
+        IGenericRepository<long, Member> welcomeUserInfoRepository)
     {
-        WelcomeBotClient = welcomeBotClient;
+        OnboardingBotClient = onboardingBotClient;
         WelcomeUserInfoRepository = welcomeUserInfoRepository;
     }
 
@@ -24,10 +24,10 @@ public abstract class WelcomePrivateHandlerChain : IHandlerChain
 
     public async Task<Result> HandleAsync(TelegramRequest request, CancellationToken cancellationToken = default)
     {
-        var privateCheck = request.IsPrivateChat();
-        if (privateCheck.IsFailure)
+        var isPrivateChat = request.IsPrivateChat();
+        if (isPrivateChat.IsFailure)
         {
-            return privateCheck;
+            return isPrivateChat;
         }
 
         var userId = request.Update.Message?.From?.Id ?? default;
@@ -36,7 +36,7 @@ public abstract class WelcomePrivateHandlerChain : IHandlerChain
             cancellationToken: cancellationToken);
         if (user is null || user.State != TargetState)
         {
-            return WelcomeHandlerHelpers.NotMatchingStateResult;
+            return Errors.NotMatchingStateResult();
         }
         user = user with
         {
@@ -51,5 +51,5 @@ public abstract class WelcomePrivateHandlerChain : IHandlerChain
             cancellationToken: cancellationToken);
     }
 
-    protected abstract Task<Result> ProcessUserAsync(long userId, WelcomeUserInfo user, string text, CancellationToken cancellationToken);
+    protected abstract Task<Result> ProcessUserAsync(long userId, Member user, string text, CancellationToken cancellationToken);
 }
