@@ -1,21 +1,21 @@
 using CleannetCodeBot.Core;
 using CleannetCodeBot.Infrastructure;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
+using MongoDB.Driver;
 
 namespace CleannetCodeBot.Features.Onboarding;
 
 public abstract class OnboardingHandlerChainBase : IHandlerChain
 {
     protected readonly IOnboardingBotClient OnboardingBotClient;
-    protected readonly IGenericRepository<long, Member> WelcomeUserInfoRepository;
+    protected readonly IMongoCollection<Member> MembersCollection;
 
     protected OnboardingHandlerChainBase(
         IOnboardingBotClient onboardingBotClient,
-        IGenericRepository<long, Member> welcomeUserInfoRepository)
+        IMongoDatabase mongoDatabase)
     {
         OnboardingBotClient = onboardingBotClient;
-        WelcomeUserInfoRepository = welcomeUserInfoRepository;
+        MembersCollection = mongoDatabase.GetCollection<Member>(Member.CollectionName);
     }
 
     protected abstract WelcomeUserInfoState TargetState { get; }
@@ -31,9 +31,10 @@ public abstract class OnboardingHandlerChainBase : IHandlerChain
         }
 
         var userId = request.Update.Message?.From?.Id ?? default;
-        var user = await WelcomeUserInfoRepository.ReadAsync(
-            key: userId,
-            cancellationToken: cancellationToken);
+        
+        var user = await MembersCollection
+            .Find(x => x.Id == userId)
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         if (user is null || user.State != TargetState)
         {
             return Errors.NotMatchingStateResult();

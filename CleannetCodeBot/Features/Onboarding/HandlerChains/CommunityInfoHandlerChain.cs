@@ -1,6 +1,6 @@
 using CleannetCodeBot.Core;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
+using MongoDB.Driver;
 
 namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
@@ -8,10 +8,10 @@ public class CommunityInfoHandlerChain : OnboardingHandlerChainBase
 {
     public CommunityInfoHandlerChain(
         IOnboardingBotClient onboardingBotClient,
-        IGenericRepository<long, Member> welcomeUserInfoRepository)
+        IMongoDatabase mongoDatabase)
         : base(
             onboardingBotClient,
-            welcomeUserInfoRepository)
+            mongoDatabase)
     {
     }
 

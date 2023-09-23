@@ -25,7 +25,7 @@ public class WelcomeBotClient : IWelcomeBotClient
     private WelcomeBotClientOptions Options => _optionsMonitor.CurrentValue;
 
     public async Task SendWelcomeMessageInCommonChatAsync(
-        string username,
+        string? username,
         long userId,
         long chatId,
         CancellationToken cancellationToken = default)
@@ -35,11 +35,13 @@ public class WelcomeBotClient : IWelcomeBotClient
         var me = await _telegramBotClient.GetMeAsync(cancellationToken: cancellationToken);
         var urlToBot = $"https://t.me/{me.Username}";
         var markup = new InlineKeyboardMarkup(InlineKeyboardButton.WithUrl(text: "Ну давай, переходи", url: urlToBot));
-        var userLink = new UserLink(username: username, userId: userId);
+        var userLink = username != null
+            ? new UserLink(username: username, userId: userId)
+            : null;
 
         await _telegramBotClient.SendTextMessageAsync(
             chatId: chatId,
-            text: $@"Привет {userLink.Value}\. Добро пожаловать в коммьюнити\.
+            text: $@"Привет {userLink?.Value}\. Добро пожаловать в коммьюнити\.
 Чтобы удобно ориентироваться в сообществе добавь меня \(бота\) к себе\. Я тебе в деталях все расскажу\.",
             parseMode: ParseMode.MarkdownV2,
             messageThreadId: Options.WelcomeThreadIdByChatId.GetValueOrDefault(chatId),

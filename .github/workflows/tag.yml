@@ -1,0 +1,45 @@
+name: Tag
+
+on:
+  push:
+    branches: [ "master" ]
+
+tag:
+  needs: [ build ]
+  
+  runs-on: ubuntu-latest
+  
+  outputs:
+    version_tag: ${{ steps.version-tag.outputs.VERSION_TAG }}
+  
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0
+      with:
+        versionSpec: '5.x'
+
+    - name: Determine Version
+      uses: gittools/actions/gitversion/execute@v0
+      with:
+        useConfigFile: true
+
+    - name: Set new version tag
+      run: git tag v${{ env.GitVersion_SemVer }}
+
+    - name: Push new version tag
+      run: git push origin v${{ env.GitVersion_SemVer }}
+
+    - name: Return version tag
+      id: version-tag
+      run: echo "VERSION_TAG="v${{ env.GitVersion_SemVer }} >> $GITHUB_OUTPUT
+
+run_terraform:
+  needs: [ tag ]
+  uses: cleannetcode/CleannetCodeBot/.github/workflows/terraform.yml@master
+  with:
+    tag: ${{needs.tag.outputs.version_tag}}
+  secrets: inherit

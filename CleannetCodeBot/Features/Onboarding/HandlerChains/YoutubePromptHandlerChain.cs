@@ -1,7 +1,7 @@
 using CleannetCodeBot.Core;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
@@ -11,10 +11,10 @@ public class YoutubePromptHandlerChain : OnboardingHandlerChainBase
 
     public YoutubePromptHandlerChain(
         IOnboardingBotClient onboardingBotClient,
-        IGenericRepository<long, Member> welcomeUserInfoRepository,
+        IMongoDatabase mongoDatabase,
         ILogger<YoutubePromptHandlerChain> logger) : base(
         onboardingBotClient: onboardingBotClient,
-        welcomeUserInfoRepository: welcomeUserInfoRepository)
+        mongoDatabase: mongoDatabase)
     {
         _logger = logger;
     }
@@ -29,18 +29,18 @@ public class YoutubePromptHandlerChain : OnboardingHandlerChainBase
     {
         if (text != OnboardingBotCommands.ChangeYoutubeInfoCommand)
             return Errors.NotMatchingStateResult();
+        
+        var update = Builders<Member>.Update
+            .Set(x => x.State, WelcomeUserInfoState.AskingYoutube);
 
-        await WelcomeUserInfoRepository.SaveAsync(
-            key: userId,
-            entity: user with
-            {
-                State = WelcomeUserInfoState.AskingYoutube
-            },
+        await MembersCollection.UpdateOneAsync(
+            x => x.Id == userId,
+            update: update,
             cancellationToken: cancellationToken);
         await OnboardingBotClient.SendYoutubePromptAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
-        // TODO: Сделать проверку на существование профиля в Github
+        // TODO: Сделать проверку на существование профиля в YouTube
         _logger.LogInformation(message: "{Result}", "Success youtube prompt");
         return Result.Success();
     }

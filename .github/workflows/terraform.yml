@@ -49,6 +49,8 @@ jobs:
       TF_VAR_telegram_bot_token: ${{ secrets.TF_VAR_TELEGRAM_BOT_TOKEN }}
       TF_VAR_ssh_private_key: ${{ secrets.TF_VAR_SSH_PRIVATE_KEY }}
       TF_VAR_ssh_public_key: ${{ secrets.TF_VAR_SSH_PUBLIC_KEY }}
+      TF_VAR_mongo_user: ${{ secrets.TF_VAR_MONGO_USER }}
+      TF_VAR_mongo_password: ${{ secrets.TF_VAR_MONGO_PASSWORD }}
       TF_VAR_image_version: ${{ inputs.tag }}
 
     steps:

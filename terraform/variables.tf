@@ -1,21 +1,22 @@
-terraform {
-  cloud {
-    organization = "pingvin1308"
-
-    workspaces {
-      name = "cleannetcode"
-    }
-  }
-
-  required_providers {
-    hcloud = {
-      source  = "hetznercloud/hcloud"
-      version = "~> 1.36.2"
-    }
-
-    null = {
-      source  = "HashiCorp/null"
-      version = "~> 3.2.1"
-    }
-  }
+variable "mongo_user" {
+  sensitive = true
 }
+variable "mongo_password" {
+  sensitive = true
+}
+variable "hcloud_token" {
+  sensitive = true
+}
+variable "telegram_bot_token" {
+  sensitive = true
+}
+variable "ssh_private_key" {
+  sensitive = true
+}
+variable "ssh_public_key" {
+  sensitive = true
+}
+variable "image_version" {
+  sensitive = true
+}
+

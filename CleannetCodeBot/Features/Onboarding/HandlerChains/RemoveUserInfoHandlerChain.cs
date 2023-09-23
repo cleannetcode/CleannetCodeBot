@@ -1,7 +1,7 @@
 using CleannetCodeBot.Core;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
@@ -11,10 +11,10 @@ public class RemoveUserInfoHandlerChain : OnboardingHandlerChainBase
 
     public RemoveUserInfoHandlerChain(
         IOnboardingBotClient onboardingBotClient,
-        IGenericRepository<long, Member> welcomeUserInfoRepository,
+        IMongoDatabase mongoDatabase,
         ILogger<RemoveUserInfoHandlerChain> logger) : base(
         onboardingBotClient: onboardingBotClient,
-        welcomeUserInfoRepository: welcomeUserInfoRepository)
+        mongoDatabase: mongoDatabase)
     {
         _logger = logger;
     }
@@ -28,8 +28,11 @@ public class RemoveUserInfoHandlerChain : OnboardingHandlerChainBase
         CancellationToken cancellationToken)
     {
         if (text != OnboardingBotCommands.ClearMyInfoCommand)
+        {
             return Errors.NotMatchingStateResult();
-        await WelcomeUserInfoRepository.RemoveAsync(key: userId, cancellationToken: cancellationToken);
+        }
+
+        await MembersCollection.DeleteOneAsync(x => x.Id == userId, cancellationToken: cancellationToken);
         await OnboardingBotClient.SendInformationRemovedSuccessfulAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);

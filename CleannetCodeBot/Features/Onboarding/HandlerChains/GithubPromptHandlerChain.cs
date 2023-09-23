@@ -1,7 +1,7 @@
 using CleannetCodeBot.Core;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
@@ -11,10 +11,10 @@ public class GithubPromptHandlerChain : OnboardingHandlerChainBase
 
     public GithubPromptHandlerChain(
         IOnboardingBotClient onboardingBotClient,
-        IGenericRepository<long, Member> welcomeUserInfoRepository,
+        IMongoDatabase mongoDatabase,
         ILogger<GithubPromptHandlerChain> logger) : base(
         onboardingBotClient: onboardingBotClient,
-        welcomeUserInfoRepository: welcomeUserInfoRepository)
+        mongoDatabase: mongoDatabase)
     {
         _logger = logger;
     }
@@ -30,12 +30,12 @@ public class GithubPromptHandlerChain : OnboardingHandlerChainBase
         if (text != OnboardingBotCommands.ChangeGithubInfoCommand)
             return Errors.NotMatchingStateResult();
 
-        await WelcomeUserInfoRepository.SaveAsync(
-            key: userId,
-            entity: user with
-            {
-                State = WelcomeUserInfoState.AskingGithub
-            },
+        var update = Builders<Member>.Update
+            .Set(x => x.State, WelcomeUserInfoState.AskingGithub);
+
+        await MembersCollection.UpdateOneAsync(
+            x => x.Id == userId,
+            update: update,
             cancellationToken: cancellationToken);
         await OnboardingBotClient.SendGithubPromptAsync(
             chatId: user.PersonalChatId!.Value,
