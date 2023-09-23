@@ -53,16 +53,23 @@ public class MemberJoinHandlerChain : IHandlerChain
         User user,
         CancellationToken cancellationToken)
     {
-        var member = new Member(
-            id: user.Id,
-            username: user.Username,
-            firstName: user.FirstName,
-            lastName: user.LastName ?? "",
-            started: true,
-            personalChatId: chatId
-        );
+        var existingMember = await _membersCollection
+            .Find(x => x.Id == user.Id)
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        if (existingMember == null)
+        {
+            var member = new Member(
+                id: user.Id,
+                username: user.Username,
+                firstName: user.FirstName,
+                lastName: user.LastName ?? "",
+                started: true,
+                personalChatId: chatId
+            );
 
-        await _membersCollection.InsertOneAsync(member, cancellationToken: cancellationToken);
+            await _membersCollection.InsertOneAsync(member, cancellationToken: cancellationToken);
+        }
+
         await _welcomeBotClient.SendWelcomeMessageInCommonChatAsync(
             userId: user.Id,
             username: user.Username,

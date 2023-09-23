@@ -1,7 +1,7 @@
 using CleannetCodeBot.Core;
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
 namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
@@ -11,10 +11,10 @@ public class GetUserInfoHandlerChain : OnboardingHandlerChainBase
 
     public GetUserInfoHandlerChain(
         IOnboardingBotClient onboardingBotClient,
-        IGenericRepository<long, Member> welcomeUserInfoRepository,
+        IMongoDatabase mongoDatabase,
         ILogger<GetUserInfoHandlerChain> logger) : base(
         onboardingBotClient: onboardingBotClient,
-        welcomeUserInfoRepository: welcomeUserInfoRepository)
+        mongoDatabase: mongoDatabase)
     {
         _logger = logger;
     }

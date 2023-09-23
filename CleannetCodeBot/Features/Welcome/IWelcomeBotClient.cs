@@ -3,7 +3,7 @@
 public interface IWelcomeBotClient
 {
     Task SendWelcomeMessageInCommonChatAsync(
-        string username,
+        string? username,
         long userId,
         long chatId,
         CancellationToken cancellationToken = default);
