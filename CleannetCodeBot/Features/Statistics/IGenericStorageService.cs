@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace CleannetCodeBot.Features.Statistics;
 
 public interface IGenericStorageService

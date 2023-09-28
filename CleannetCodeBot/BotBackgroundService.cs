@@ -1,10 +1,8 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -16,8 +14,6 @@ public class BotBackgroundService : IHostedService
     private readonly ILogger<BotBackgroundService> _logger;
     private readonly ITelegramBotClient _client;
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ConcurrentBag<Task> _awaitedTasks = new();
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public BotBackgroundService(
         ILogger<BotBackgroundService> logger,
@@ -29,7 +25,17 @@ public class BotBackgroundService : IHostedService
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task RunAsync()
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        return RunAsync(cancellationToken: cancellationToken);
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    private async Task RunAsync(CancellationToken cancellationToken)
     {
         // Начать получение не блокирует поток вызывающего абонента. Получение выполняется в пуле потоков.
         var receiverOptions = new ReceiverOptions()
@@ -53,7 +59,7 @@ public class BotBackgroundService : IHostedService
             }
         };
 
-        var me  = await _client.GetMeAsync();
+        var me = await _client.GetMeAsync(cancellationToken: cancellationToken);
         _logger.LogInformation(
             "{DateTime:dd.MM.yyyy HH:mm:ss:ffff}\tHey! I am {BotName}", DateTime.Now,
             me.Username);
@@ -62,7 +68,7 @@ public class BotBackgroundService : IHostedService
             updateHandler: HandleUpdateAsync,
             pollingErrorHandler: HandlePollingErrorAsync,
             receiverOptions: receiverOptions,
-            cancellationToken: _cancellationTokenSource.Token);
+            cancellationToken: cancellationToken);
     }
 
     private Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cts)
@@ -71,9 +77,7 @@ public class BotBackgroundService : IHostedService
         //--------------------------------------------------
         // Разобратся с типом getUpdates. Попытаться запросить историю уже прочитанных сообщений: https://core.telegram.org/bots/api#getupdates
         //--------------------------------------------------
-
-        _awaitedTasks.Add(ServeUpdate(update, cts));
-        return Task.CompletedTask;
+        return ServeUpdate(update, cts);
     }
 
     private async Task ServeUpdate(Update update, CancellationToken cts)
@@ -108,16 +112,5 @@ public class BotBackgroundService : IHostedService
     {
         _logger.LogError(exception, "Telegram API Error {ErrorMessage}", exception.Message);
         return Task.CompletedTask;
-    }
-
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        await RunAsync();
-    }
-
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        _cancellationTokenSource.Cancel();
-        await Task.WhenAll(_awaitedTasks.Select(task => task.WaitAsync(cancellationToken)));
     }
 }

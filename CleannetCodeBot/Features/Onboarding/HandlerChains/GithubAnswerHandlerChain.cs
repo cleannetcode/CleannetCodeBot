@@ -1,19 +1,20 @@
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
+using CleannetCodeBot.Core;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class GithubAnswerHandlerChain : WelcomePrivateHandlerChain
+public class GithubAnswerHandlerChain : OnboardingHandlerChainBase
 {
     private readonly ILogger<GithubAnswerHandlerChain> _logger;
 
     public GithubAnswerHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IOnboardingBotClient onboardingBotClient,
+        IMongoDatabase mongoDatabase,
         ILogger<GithubAnswerHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
-        welcomeUserInfoRepository: welcomeUserInfoRepository)
+        onboardingBotClient: onboardingBotClient,
+        mongoDatabase: mongoDatabase)
     {
         _logger = logger;
     }
@@ -22,18 +23,19 @@ public class GithubAnswerHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
-        await WelcomeUserInfoRepository.SaveAsync(
-            key: userId,
-            entity: user with
-            {
-                GithubNick = text, State = WelcomeUserInfoState.Idle
-            },
+        var update = Builders<Member>.Update
+            .Set(x => x.GithubNick, text)
+            .Set(x => x.State, WelcomeUserInfoState.Idle);
+
+        await MembersCollection.UpdateOneAsync(
+            x => x.Id == userId,
+            update: update,
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendGithubConfirmedAsync(
+        await OnboardingBotClient.SendGithubConfirmedAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         // TODO: Сделать проверку на существование профиля в Github

@@ -21,7 +21,14 @@ public class StorageFileService : IGenericStorageService
         _logger = logger;
     }
 
-    private static async Task<string> SaveJsonAsync(string methodName, CancellationToken cts, string json)
+    public async Task AddObjectAsync<T>(T obj, string methodName, CancellationToken cancellationToken = default)
+    {
+        var json = JsonSerializer.Serialize(obj, _optionsJson);
+        var path = await SaveJsonAsync(methodName, json, cancellationToken);
+        _logger.LogInformation("New file created {Path}", path);
+    }
+
+    private static async Task<string> SaveJsonAsync(string methodName, string json, CancellationToken cts)
     {
         var dir = $"{Directory}{methodName}/";
         System.IO.Directory.CreateDirectory(dir);
@@ -29,12 +36,5 @@ public class StorageFileService : IGenericStorageService
         var path = Path.Combine(dir, fileName);
         await File.WriteAllTextAsync(path, json, cts);
         return path;
-    }
-
-    public async Task AddObjectAsync<T>(T obj, string methodName, CancellationToken cancellationToken = default)
-    {
-        var json = JsonSerializer.Serialize(obj, _optionsJson);
-        var path = await SaveJsonAsync(methodName, cancellationToken, json);
-        _logger.LogInformation("New file created {Path}", path);
     }
 }

@@ -1,18 +1,18 @@
-namespace CleannetCodeBot.Infrastructure;
+namespace CleannetCodeBot.Core;
 
-public class MarkdownMessage
+public class UserLink
 {
-    private readonly string _text;
     public const string SpecialCharacters = @"_*[]()~`>#+-={}.!";
 
-    public MarkdownMessage(string text)
+    public UserLink(string username, long userId)
     {
-        _text = EscapeSpecialCharacters(text);
+        var cleanUserName = EscapeSpecialCharacters(username);
+        Value = $"[@{cleanUserName}](tg://user?id={userId})";
     }
 
-    public string Text => _text;
+    public string Value { get; }
 
-    private string EscapeSpecialCharacters(string input)
+    public static string EscapeSpecialCharacters(string input)
     {
         // https://core.telegram.org/bots/api#markdownv2-style
         var specialCharacters = new[]

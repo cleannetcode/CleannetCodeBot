@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.4.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.21.0" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0-dev-00791" />
     <PackageReference Include="Serilog.Enrichers.Thread" Version="3.2.0-dev-00752" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />

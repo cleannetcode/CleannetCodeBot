@@ -1,6 +1,6 @@
-namespace CleannetCodeBot.Features.Welcome;
+namespace CleannetCodeBot.Core;
 
-public interface IWelcomeStickersBotClient
+public interface IStickersBotClient
 {
     Task SendRandomWelcomeStickerFromSetAsync(long chatId, CancellationToken cancellationToken);
 }

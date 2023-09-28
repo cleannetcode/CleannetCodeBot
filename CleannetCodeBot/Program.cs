@@ -1,4 +1,6 @@
-﻿using CleannetCodeBot.Features.Forwards;
+﻿using CleannetCodeBot.Core;
+using CleannetCodeBot.Features.Forwards;
+using CleannetCodeBot.Features.Onboarding;
 using CleannetCodeBot.Features.Statistics;
 using CleannetCodeBot.Features.Welcome;
 using CleannetCodeBot.Infrastructure;
@@ -10,19 +12,25 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Serilog;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace CleannetCodeBot;
 
-public static class Program
+public class Program
 {
     public static async Task Main(string[] args)
     {
         var environmentVariable = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
         var host = Host.CreateDefaultBuilder(args)
             .UseEnvironment(environmentVariable)
+            .UseDefaultServiceProvider(x =>
+            {
+                x.ValidateScopes = true;
+                x.ValidateOnBuild = true;
+            })
             .ConfigureServices(
                 (context, services) =>
                 {
@@ -32,19 +40,27 @@ public static class Program
                     services.AddSingleton<ITelegramBotClient, TelegramBotClient>(
                         _ =>
                         {
-                            var accessToken = context.Configuration.GetValue<string>("AccessToken")!;
+                            var accessToken = context.Configuration.GetValue<string>("TelegramBotAccessToken")!;
                             return new(accessToken);
                         });
 
+                    services.AddSingleton<IMongoDatabase>(_ =>
+                    {
+                        var connectionString = context.Configuration.GetConnectionString("MongoDbConnectionString")!;
+                        var client = new MongoClient(connectionString);
+                        return client.GetDatabase("CleanCodeBotDb");
+                    });
+
                     services.AddSingleton(serviceType: typeof(ILockService<,>), implementationType: typeof(SemaphoreSlimLockService<,>));
                     services.AddSingleton(serviceType: typeof(IGenericRepository<,>), implementationType: typeof(JsonFilesGenericRepository<,>));
-                    services.Configure<JsonFilesGenericRepositoryOptions<long, WelcomeUserInfo>>(
-                        context.Configuration.GetSection(JsonFilesGenericRepositoryOptions<long, WelcomeUserInfo>.GetSectionName()));
+                    services.Configure<JsonFilesGenericRepositoryOptions<long, Member>>(
+                        context.Configuration.GetSection(JsonFilesGenericRepositoryOptions<long, Member>.GetSectionName()));
                     services.Configure<ForwardsHandlerOptions>(context.Configuration.GetSection(ForwardsHandlerOptions.Section));
                     services.Configure<WelcomeBotClientOptions>(context.Configuration.GetSection(WelcomeBotClientOptions.Section));
 
-                    services.AddSingleton<IWelcomeStickersBotClient, WelcomeStickersBotClient>();
+                    services.AddSingleton<IStickersBotClient, StickersBotClient>();
                     services.AddSingleton<IWelcomeBotClient, WelcomeBotClient>();
+                    services.AddSingleton<IOnboardingBotClient, OnboardingBotClient>();
 
                     services.AddScoped(
                         LogHandlerChain<CallbackQuery>.Factory(
@@ -104,6 +120,18 @@ public static class Program
                                 .CreateLogger()))
             .Build();
 
+        var logger = host.Services.GetRequiredService<ILogger<Program>>();
+
+        TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
+        {
+            logger.LogError(eventArgs.Exception, "UnobservedTaskException");
+        };
+        
+        AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+        {
+            logger.LogError(eventArgs.ExceptionObject as Exception, "UnhandledException");
+        };
+        
         await host.StartAsync();
     }
 }

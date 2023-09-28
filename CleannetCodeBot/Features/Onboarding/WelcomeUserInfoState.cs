@@ -1,4 +1,4 @@
-namespace CleannetCodeBot.Features.Welcome;
+namespace CleannetCodeBot.Features.Onboarding;
 
 public enum WelcomeUserInfoState
 {

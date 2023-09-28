@@ -1,19 +1,20 @@
-using CleannetCodeBot.Infrastructure.DataAccess.Interfaces;
+using CleannetCodeBot.Core;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 
-namespace CleannetCodeBot.Features.Welcome.HandlerChains;
+namespace CleannetCodeBot.Features.Onboarding.HandlerChains;
 
-public class YoutubeAnswerHandlerChain : WelcomePrivateHandlerChain
+public class YoutubeAnswerHandlerChain : OnboardingHandlerChainBase
 {
     private readonly ILogger<YoutubeAnswerHandlerChain> _logger;
 
     public YoutubeAnswerHandlerChain(
-        IWelcomeBotClient welcomeBotClient,
-        IGenericRepository<long, WelcomeUserInfo> welcomeUserInfoRepository,
+        IOnboardingBotClient onboardingBotClient,
+        IMongoDatabase mongoDatabase,
         ILogger<YoutubeAnswerHandlerChain> logger) : base(
-        welcomeBotClient: welcomeBotClient,
-        welcomeUserInfoRepository: welcomeUserInfoRepository)
+        onboardingBotClient: onboardingBotClient,
+        mongoDatabase: mongoDatabase)
     {
         _logger = logger;
     }
@@ -22,18 +23,19 @@ public class YoutubeAnswerHandlerChain : WelcomePrivateHandlerChain
 
     protected override async Task<Result> ProcessUserAsync(
         long userId,
-        WelcomeUserInfo user,
+        Member user,
         string text,
         CancellationToken cancellationToken)
     {
-        await WelcomeUserInfoRepository.SaveAsync(
-            key: userId,
-            entity: user with
-            {
-                YoutubeName = text, State = WelcomeUserInfoState.Idle
-            },
+        var update = Builders<Member>.Update
+            .Set(x => x.YoutubeName, text)
+            .Set(x => x.State, WelcomeUserInfoState.Idle);
+
+        await MembersCollection.UpdateOneAsync(
+            x => x.Id == userId,
+            update: update,
             cancellationToken: cancellationToken);
-        await WelcomeBotClient.SendYoutubeConfirmedAsync(
+        await OnboardingBotClient.SendYoutubeConfirmedAsync(
             chatId: user.PersonalChatId!.Value,
             cancellationToken: cancellationToken);
         _logger.LogInformation(message: "{Result}", "Success youtube answer handling");
