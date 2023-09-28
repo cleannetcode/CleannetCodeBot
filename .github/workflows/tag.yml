@@ -6,8 +6,6 @@ on:
 
 jobs:
   tag:
-    needs: [ build ]
-    
     runs-on: ubuntu-latest
     
     outputs:
