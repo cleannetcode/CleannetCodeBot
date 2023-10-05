@@ -18,7 +18,7 @@ resource "null_resource" "up_mongodb" {
   provisioner "remote-exec" {
     inline = [
       "docker pull mongo:6.0",
-      "docker run -d -e MONGO_INITDB_ROOT_USERNAME=user -e MONGO_INITDB_ROOT_PASSWORD=test -v /bot_data/mongo:/etc/mongo mongo:6.0",
+      "docker run -d -e MONGO_INITDB_ROOT_USERNAME=${var.mongo_user} -e MONGO_INITDB_ROOT_PASSWORD=${var.mongo_password} -v /bot_data/mongo:/etc/mongo mongo:6.0",
       "docker container ls"
     ]
   }
