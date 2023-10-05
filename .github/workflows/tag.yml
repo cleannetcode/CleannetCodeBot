@@ -27,7 +27,7 @@ jobs:
           useConfigFile: true
 
       - name: Set new version tag
-        run: git tag v${{ env.GitVersion_SemVer }}
+        run: git tag -f v${{ env.GitVersion_SemVer }}
 
       - name: Push new version tag
         run: git push origin v${{ env.GitVersion_SemVer }}
