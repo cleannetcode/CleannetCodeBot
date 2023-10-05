@@ -1,12 +1,16 @@
+locals {
+  mongo_server_ip = hcloud_server.cleannetcode_bot.ipv4_address
+}
+
 resource "null_resource" "up_mongodb" {
 
   triggers = {
-    build_number = timestamp()
+    server_ip = local.mongo_server_ip
   }
 
   connection {
     user        = "root"
-    host        = hcloud_server.cleannetcode_bot.ipv4_address
+    host        = local.mongo_server_ip
     type        = "ssh"
     private_key = var.ssh_private_key
   }
