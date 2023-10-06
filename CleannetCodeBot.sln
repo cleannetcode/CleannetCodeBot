@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleannetCodeBot", "Cleannet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleannetCodeBot.Tests", "CleannetCodeBot.Tests\CleannetCodeBot.Tests.csproj", "{737CBEED-58C3-4BF4-8FF6-C3BDCD11A52D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleannetCodeBot.Twitch", "CleannetCodeBot.Twitch\CleannetCodeBot.Twitch.csproj", "{595E059E-E165-4C66-B986-A3997C53DED9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{737CBEED-58C3-4BF4-8FF6-C3BDCD11A52D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{737CBEED-58C3-4BF4-8FF6-C3BDCD11A52D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{737CBEED-58C3-4BF4-8FF6-C3BDCD11A52D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{595E059E-E165-4C66-B986-A3997C53DED9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{595E059E-E165-4C66-B986-A3997C53DED9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{595E059E-E165-4C66-B986-A3997C53DED9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{595E059E-E165-4C66-B986-A3997C53DED9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

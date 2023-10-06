@@ -9,14 +9,14 @@ using Telegram.Bot.Types.Enums;
 
 namespace CleannetCodeBot;
 
-public class BotBackgroundService : IHostedService
+public class TelegramBotBackgroundService : IHostedService
 {
-    private readonly ILogger<BotBackgroundService> _logger;
+    private readonly ILogger<TelegramBotBackgroundService> _logger;
     private readonly ITelegramBotClient _client;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public BotBackgroundService(
-        ILogger<BotBackgroundService> logger,
+    public TelegramBotBackgroundService(
+        ILogger<TelegramBotBackgroundService> logger,
         ITelegramBotClient client,
         IServiceScopeFactory serviceScopeFactory)
     {
@@ -83,7 +83,7 @@ public class BotBackgroundService : IHostedService
     private async Task ServeUpdate(Update update, CancellationToken cts)
     {
         await using var scope = _serviceScopeFactory.CreateAsyncScope();
-        var updateLogger = scope.ServiceProvider.GetRequiredService<ILogger<BotBackgroundService>>();
+        var updateLogger = scope.ServiceProvider.GetRequiredService<ILogger<TelegramBotBackgroundService>>();
         var handlers = scope.ServiceProvider.GetRequiredService<Infrastructure.Handlers>();
         var stopwatch = Stopwatch.StartNew();
         updateLogger.LogDebug("Start serving update of type {Type} with id {Id}", update.Type, update.Id);
