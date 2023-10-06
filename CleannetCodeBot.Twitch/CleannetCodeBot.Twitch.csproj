@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>76c23ceb-8ed0-4250-b4d4-f39f8c89aba8</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+        <PackageReference Include="TwitchLib.Api" Version="3.9.0" />
+        <PackageReference Include="TwitchLib.Api.Helix" Version="3.9.0" />
+        <PackageReference Include="TwitchLib.Client" Version="3.3.1" />
+        <PackageReference Include="TwitchLib.EventSub.Websockets" Version="0.4.0" />
+        <PackageReference Include="TwitchLib.PubSub" Version="3.2.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+</Project>

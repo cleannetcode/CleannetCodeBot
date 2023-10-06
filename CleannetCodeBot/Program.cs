@@ -36,7 +36,8 @@ public class Program
                 {
                     services.AddHandlerChains(typeof(Program).Assembly);
 
-                    services.AddHostedService<BotBackgroundService>();
+                    services.AddHostedService<TelegramBotBackgroundService>();
+                    
                     services.AddSingleton<ITelegramBotClient, TelegramBotClient>(
                         _ =>
                         {
