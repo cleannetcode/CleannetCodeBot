@@ -19,7 +19,7 @@ resource "null_resource" "up_bot_container" {
 
   provisioner "remote-exec" {
     inline = [
-      "docker container rm -f bot &> /dev/null",
+#      "docker container rm -f bot &> /dev/null",
       "docker run -d ${local.bot_env} --name bot -v /bot_data/Data:/app/Data -v /bot_data/FileStorage:/app/FileStorage pingvin1308/cleannetcode.bot:${var.image_version}",
       "docker container ls"
     ]
