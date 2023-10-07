@@ -48,7 +48,7 @@ public class Program
                     {
                         var connectionString = context.Configuration.GetConnectionString("MongoDbConnectionString")!;
                         var client = new MongoClient(connectionString);
-                        return client.GetDatabase("CleanCodeBotDb");
+                        return client.GetDatabase("CleannetCodeBot");
                     });
 
                     services.AddSingleton(serviceType: typeof(ILockService<,>), implementationType: typeof(SemaphoreSlimLockService<,>));
