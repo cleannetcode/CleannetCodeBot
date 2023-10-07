@@ -20,7 +20,7 @@ resource "null_resource" "up_bot_container" {
 
   provisioner "remote-exec" {
     inline = [
-      "docker run -d ${local.bot_env} --name bot -v /bot_data/Data:/app/Data -v /bot_data/FileStorage:/app/FileStorage pingvin1308/cleannetcode.bot:${var.image_version}",
+      "docker run -d -e TelegramBotAccessToken=${var.telegram_bot_token} -e ConnectionStrings__MongoDbConnectionString=${local.mongo_connection_string} --name bot -v /bot_data/Data:/app/Data -v /bot_data/FileStorage:/app/FileStorage pingvin1308/cleannetcode.bot:${var.image_version}",
       "docker container ls"
     ]
   }
