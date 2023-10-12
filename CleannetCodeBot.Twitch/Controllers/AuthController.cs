@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 
 namespace CleannetCodeBot.Twitch.Controllers;
 
@@ -98,6 +97,6 @@ public class AuthController : ControllerBase
             .Append("state=").Append(state)
             .ToString();
 
-        return Redirect(url);
+        return Ok(url);
     }
 }
