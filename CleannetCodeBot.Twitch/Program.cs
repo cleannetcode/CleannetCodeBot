@@ -1,13 +1,31 @@
+using System.Text;
 using CleannetCodeBot.Twitch;
+using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Retry;
+using Polly.Timeout;
+using TwitchLib.Api;
+using TwitchLib.Api.Core;
+using TwitchLib.Api.Core.Interfaces;
+using TwitchLib.Api.Interfaces;
 using TwitchLib.Client;
 using TwitchLib.Communication.Clients;
 using TwitchLib.Communication.Models;
 using TwitchLib.EventSub.Websockets.Extensions;
 
+Console.OutputEncoding = Encoding.Unicode;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddRetryResiliencePipeline();
 builder.Services.AddTwitchLibEventSubWebsockets();
-builder.Services.AddHostedService<WebsocketHostedService>();
+builder.Services.AddSingleton<IApiSettings>(x => new ApiSettings
+{
+    ClientId = x.GetRequiredService<IOptions<AppSettings>>().Value.ClientId
+});
+builder.Services.AddSingleton<ITwitchAPI, TwitchAPI>();
+
+builder.Services.AddHostedService<TwitchWebsocketBackgroundService>();
 builder.Services.AddHostedService<TwitchBotBackgroundService>();
 
 builder.Services.AddHttpClient();
@@ -34,6 +52,8 @@ builder.Services.AddSingleton<TwitchClient>(_ =>
     return new TwitchClient(customClient);
 });
 
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -44,6 +64,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(x => x.AllowAnyOrigin());
 
 app.UseAuthorization();
 

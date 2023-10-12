@@ -1,9 +1,6 @@
-using System.Text;
-using CleannetCodeBot.Twitch.Controllers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using TwitchLib.Client;
-using TwitchLib.Client.Enums;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
 
@@ -85,7 +82,7 @@ public class TwitchBotBackgroundService : BackgroundService
         }
         else if (e.ChatMessage.Message.StartsWith("!yt"))
         {
-            var ytMessage = "Разбор тем и прочие более душные штуки из мира программирования https://www.youtube.com/@Cleannetcode"
+            var ytMessage = "Разбор тем и прочие более душные штуки из мира программирования https://www.youtube.com/@Cleannetcode";
             _client.SendMessage(e.ChatMessage.Channel, ytMessage);
         }
     }
