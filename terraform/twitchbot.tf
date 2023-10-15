@@ -10,6 +10,10 @@ resource "null_resource" "up_twitch_bot_container" {
   triggers = {
     build_number = timestamp()
   }
+  
+  depends_on = [
+    null_resource.up_telegram_bot_container
+  ]
 
   connection {
     user        = "root"
