@@ -26,7 +26,7 @@ resource "null_resource" "up_twitch_bot_container" {
       "docker container rm twitch_bot &> /dev/null",
       "docker rmi $(docker images | grep 'cleannetcode.twitchbot') &> /dev/null",
       "docker pull pingvin1308/cleannetcode.twitchbot:${var.image_version}",
-      "docker run -d ${local.bot_env} --name twitch_bot -p 5210:80 pingvin1308/cleannetcode.twitchbot:${var.image_version}",
+      "docker run -d ${local.bot_env} --name twitch_bot -p 5210:443 pingvin1308/cleannetcode.twitchbot:${var.image_version}",
       "docker container ls"
     ]
   }
