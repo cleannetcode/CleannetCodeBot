@@ -19,4 +19,13 @@ variable "ssh_public_key" {
 variable "image_version" {
   sensitive = true
 }
+variable "twitch_client_id" {
+  sensitive = true
+}
+variable "twitch_client_secret" {
+  sensitive = true
+}
+variable "twitch_redirect_uri" {
+  sensitive = true
+}
 

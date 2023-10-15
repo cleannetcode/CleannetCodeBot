@@ -23,14 +23,20 @@ jobs:
         with:
           fetch-depth: 0
           
-      - name: Build docker image
+      - name: Build telegram bot image
         run: docker build -t pingvin1308/cleannetcode.bot:${{ inputs.tag }} -f ./CleannetCodeBot/Dockerfile .
+        
+      - name: Build twitch bot image
+        run: docker build -t pingvin1308/cleannetcode.twitchbot:${{ inputs.tag }} -f ./CleannetCodeBot/Dockerfile .
       
       - name: docker login
         run: docker login -u ${{ secrets.DOCKER_USER_NAME }} -p ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Push docker image
+      - name: Push docker telegram bot image
         run: docker push pingvin1308/cleannetcode.bot:${{ inputs.tag }}
+        
+      - name: Push docker twitch bot image
+        run: docker push pingvin1308/cleannetcode.twitchbot:${{ inputs.tag }}
 
   terraform:
     needs: [build_image]
@@ -51,6 +57,9 @@ jobs:
       TF_VAR_ssh_public_key: ${{ secrets.TF_VAR_SSH_PUBLIC_KEY }}
       TF_VAR_mongo_user: ${{ secrets.TF_VAR_MONGO_USER }}
       TF_VAR_mongo_password: ${{ secrets.TF_VAR_MONGO_PASSWORD }}
+      TF_VAR_twitch_client_id: ${{ secrets.TF_VAR_TWITCH_CLIENT_ID }}
+      TF_VAR_twitch_client_secret: ${{ secrets.TF_VAR_TWITCH_CLIENT_SECRET }}
+      TF_VAR_twitch_redirect_url: ${{ secrets.TF_VAR_TWITCH_REDIRECT_URL }}
       TF_VAR_image_version: ${{ inputs.tag }}
 
     steps:

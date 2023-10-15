@@ -1,7 +1,7 @@
-using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using TwitchLib.Api.Interfaces;
 
 namespace CleannetCodeBot.Twitch.Controllers;
 
@@ -10,19 +10,19 @@ namespace CleannetCodeBot.Twitch.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IMemoryCache _memoryCache;
-    private readonly HttpClient _httpClient;
+    private readonly ITwitchAPI _twitchApi;
     private readonly ILogger<AuthController> _logger;
     private readonly AppSettings _appSettings;
-    private const string UserStateKey = "user_state";
+    public const string UserStateKey = "user_state";
 
     public AuthController(
         IMemoryCache memoryCache,
+        ITwitchAPI twitchApi,
         IOptions<AppSettings> options,
-        HttpClient httpClient,
         ILogger<AuthController> logger)
     {
         _memoryCache = memoryCache;
-        _httpClient = httpClient;
+        _twitchApi = twitchApi;
         _logger = logger;
         _appSettings = options.Value;
     }
@@ -43,60 +43,42 @@ public class AuthController : ControllerBase
         var clientId = _appSettings.ClientId;
         var redirectUri = _appSettings.RedirectUri;
         var clientSecret = _appSettings.ClientSecret;
-        var url = new Uri("https://id.twitch.tv/oauth2/token");
 
-        var body = new StringBuilder()
-            .Append("client_id=").Append(clientId).Append('&')
-            .Append("client_secret=").Append(clientSecret).Append('&')
-            .Append("code=").Append(code).Append('&')
-            .Append("grant_type=authorization_code").Append('&')
-            .Append("redirect_uri=").Append(redirectUri)
-            .ToString();
-
-        var stringContent = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
-        var response = await _httpClient.PostAsync(url, stringContent, cancellationToken);
-        if (response.IsSuccessStatusCode == false)
+        var response = await _twitchApi.Auth.GetAccessTokenFromCodeAsync(
+            code: code,
+            clientSecret: clientSecret,
+            redirectUri: redirectUri,
+            clientId: clientId);
+        if (response == null)
         {
-            _logger.LogError("Failed to get auth token");
+            var message = "Cannot deserialize auth token";
+            _logger.LogError(message);
             _memoryCache.Remove(AuthToken.Key);
-            return BadRequest("Failed to get auth token");
+            return BadRequest(message);
         }
 
-        var authToken = await response.Content.ReadFromJsonAsync<AuthToken>(cancellationToken: cancellationToken);
-        if (authToken == null)
+        var authResponse = await _twitchApi.Auth.ValidateAccessTokenAsync(response.AccessToken);
+        if (authResponse == null)
         {
-            _logger.LogError("Cannot deserialize auth token");
+            var message = "Access token is invalid";
+            _logger.LogError(message);
             _memoryCache.Remove(AuthToken.Key);
-            return BadRequest("Cannot deserialize auth token");
+            return BadRequest(message);
         }
 
+        var usersResponse = await _twitchApi.Helix.Users.GetUsersAsync(
+            ids: new List<string> { authResponse.UserId },
+            accessToken: response.AccessToken);
+        if (usersResponse.Users.Any(x => x.Login != "cleannetcode"))
+        {
+            var message = "User is not CleannetCode";
+            _logger.LogError(message);
+            _memoryCache.Remove(AuthToken.Key);
+            return BadRequest(message);
+        }
+
+        var authToken = new AuthToken(response.AccessToken, response.ExpiresIn, response.RefreshToken);
         _memoryCache.Set(AuthToken.Key, authToken);
-
         return Ok();
-    }
-
-    [HttpGet("code")]
-    public IActionResult RequestCode()
-    {
-        var state = Guid.NewGuid().ToString("N");
-        _memoryCache.Set(UserStateKey, state);
-
-        var clientId = _appSettings.ClientId;
-        var redirectUri = _appSettings.RedirectUri;
-
-        var url = new StringBuilder("https://id.twitch.tv/oauth2/authorize")
-            .Append('?')
-            .Append("response_type=code").Append('&')
-            .Append("client_id=").Append(clientId).Append('&')
-            .Append("redirect_uri=").Append(redirectUri).Append('&')
-            .Append("scope=channel%3Aread%3Apolls")
-            .Append("+chat%3Aread")
-            .Append("+chat%3Aedit")
-            .Append("+channel%3Amanage%3Aredemptions")
-            .Append("+channel%3Aread%3Aredemptions").Append('&')
-            .Append("state=").Append(state)
-            .ToString();
-
-        return Ok(url);
     }
 }
