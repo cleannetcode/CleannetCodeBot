@@ -26,7 +26,6 @@ resource "null_resource" "up_telegram_bot_container" {
       "docker rmi $(docker images | grep 'cleannetcode.bot') &> /dev/null",
       "docker pull pingvin1308/cleannetcode.bot:${var.image_version}",
       "docker run -d -e TelegramBotAccessToken=${var.telegram_bot_token} -e ConnectionStrings__MongoDbConnectionString=${local.mongo_connection_string} --name bot -v /bot_data/Data:/app/Data -v /bot_data/FileStorage:/app/FileStorage pingvin1308/cleannetcode.bot:${var.image_version}",
-      "docker container ls",
       "docker container stop twitch_bot &> /dev/null",
       "docker container rm twitch_bot &> /dev/null",
       "docker rmi $(docker images | grep 'cleannetcode.twitchbot') &> /dev/null",
