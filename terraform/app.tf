@@ -1,5 +1,5 @@
 locals {
-  mongo_connection_string = "'mongodb://${var.mongo_user}:${var.mongo_password}@mongo:27017'"
+  mongo_connection_string = "'mongodb://${var.mongo_user}:${var.mongo_password}@172.17.0.2:27017'"
   bot_env = join(" ", [
     "-e TelegramBotAccessToken=${var.telegram_bot_token}",
     "-e ConnectionStrings__MongoDbConnectionString=${local.mongo_connection_string}",
