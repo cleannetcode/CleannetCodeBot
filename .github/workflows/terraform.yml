@@ -59,7 +59,7 @@ jobs:
       TF_VAR_mongo_password: ${{ secrets.TF_VAR_MONGO_PASSWORD }}
       TF_VAR_twitch_client_id: ${{ secrets.TF_VAR_TWITCH_CLIENT_ID }}
       TF_VAR_twitch_client_secret: ${{ secrets.TF_VAR_TWITCH_CLIENT_SECRET }}
-      TF_VAR_twitch_redirect_url: ${{ secrets.TF_VAR_TWITCH_REDIRECT_URL }}
+      TF_VAR_twitch_redirect_uri: ${{ secrets.TF_VAR_TWITCH_REDIRECT_URI }}
       TF_VAR_image_version: ${{ inputs.tag }}
 
     steps:
