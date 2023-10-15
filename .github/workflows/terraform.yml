@@ -27,7 +27,7 @@ jobs:
         run: docker build -t pingvin1308/cleannetcode.bot:${{ inputs.tag }} -f ./CleannetCodeBot/Dockerfile .
         
       - name: Build twitch bot image
-        run: docker build -t pingvin1308/cleannetcode.twitchbot:${{ inputs.tag }} -f ./CleannetCodeBot/Dockerfile .
+        run: docker build -t pingvin1308/cleannetcode.twitchbot:${{ inputs.tag }} -f ./CleannetCodeBot.Twitch/Dockerfile .
       
       - name: docker login
         run: docker login -u ${{ secrets.DOCKER_USER_NAME }} -p ${{ secrets.DOCKER_PASSWORD }}
