@@ -1,12 +1,9 @@
 locals {
   mongo_connection_string = "'mongodb://${var.mongo_user}:${urlencode(var.mongo_password)}@172.17.0.2:27017'"
-  bot_env = join(" ", [
-    "-e TelegramBotAccessToken=${var.telegram_bot_token}",
-    "-e ConnectionStrings__MongoDbConnectionString=${local.mongo_connection_string}",
-  ])
+
 }
 
-resource "null_resource" "up_bot_container" {
+resource "null_resource" "up_telegram_bot_container" {
   triggers = {
     build_number = timestamp()
   }
