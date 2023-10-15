@@ -3,7 +3,7 @@ locals {
   bot_env                 = join(" ", [
     "-e AppSettings__ClientId=${var.twitch_client_id}",
     "-e AppSettings__ClientSecret=${var.twitch_client_secret}",
-    "-e AppSettings__RedirectUri=${var.twitch_redirect_uri}",
+    "-e AppSettings__RedirectUri=${var.twitch_redirect_uri}"
   ])
 }
 
