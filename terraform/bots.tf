@@ -1,6 +1,6 @@
 locals {
   mongo_connection_string = "'mongodb://${var.mongo_user}:${urlencode(var.mongo_password)}@172.17.0.2:27017'"
-  bot_env                 = join(" ", [
+  bot_env = join(" ", [
     "-e AppSettings__ClientId=${var.twitch_client_id}",
     "-e AppSettings__ClientSecret=${var.twitch_client_secret}",
     "-e AppSettings__RedirectUri=${var.twitch_redirect_uri}"
