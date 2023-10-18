@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using CleannetCodeBot.Twitch.Polls;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
@@ -18,6 +19,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
     private readonly ITwitchAPI _twitchApi;
     private readonly AppSettings _appSettings;
     private readonly EventSubWebsocketClient _eventSubWebsocketClient;
+    private readonly IPollsService _pollsService;
     private readonly ResiliencePipeline _resiliencePipeline;
     private const string ChannelRewardRedemption = "channel.channel_points_custom_reward_redemption.add";
 
@@ -27,7 +29,8 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         IMemoryCache memoryCache,
         ITwitchAPI twitchApi,
         IOptions<AppSettings> options,
-        EventSubWebsocketClient eventSubWebsocketClient)
+        EventSubWebsocketClient eventSubWebsocketClient,
+        IPollsService pollsService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _memoryCache = memoryCache;
@@ -36,6 +39,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         _resiliencePipeline = resiliencePipelineProvider.GetPipeline(ServiceCollectionExtension.RetryResiliencePipeline);
 
         _eventSubWebsocketClient = eventSubWebsocketClient ?? throw new ArgumentNullException(nameof(eventSubWebsocketClient));
+        _pollsService = pollsService;
         _eventSubWebsocketClient.WebsocketConnected += OnWebsocketConnected;
         _eventSubWebsocketClient.WebsocketDisconnected += OnWebsocketDisconnected;
         _eventSubWebsocketClient.WebsocketReconnected += OnWebsocketReconnected;
@@ -68,7 +72,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
 
             _twitchApi.Settings.AccessToken = authToken.AccessToken;
 
-            isConnected = await _eventSubWebsocketClient.ConnectAsync();
+            isConnected = await _eventSubWebsocketClient.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"));
         }
 
         while (!cancellationToken.IsCancellationRequested && isConnected)
@@ -178,9 +182,29 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         _logger.LogInformation($"{eventData.UserName} followed {eventData.BroadcasterUserName} at {eventData.FollowedAt}");
     }
 
-    private void OnChannelPointsCustomRewardRedemptionAdd(object? sender, ChannelPointsCustomRewardRedemptionArgs e)
+    private async void OnChannelPointsCustomRewardRedemptionAdd(object? sender, ChannelPointsCustomRewardRedemptionArgs e)
     {
         var eventData = e.Notification.Payload.Event;
         _logger.LogInformation($"{eventData.UserName} requested from {eventData.BroadcasterUserName} reward {eventData.Reward.Title}");
+        
+
+        var authToken = _memoryCache.Get<AuthToken>(AuthToken.Key);
+
+
+        if (eventData.Reward.Title == "Test Reward from CLI")
+        {
+            try
+            {
+                await _pollsService.CreatePoll(eventData.UserId, eventData.BroadcasterUserId, authToken.AccessToken);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogInformation($"Poll creating error: {exception.Message}");
+            }
+        }
+        else
+        {
+            _pollsService.AddVoteToPoll(eventData.Reward.Id, eventData.UserId, eventData.UserInput.Trim());
+        }
     }
 }

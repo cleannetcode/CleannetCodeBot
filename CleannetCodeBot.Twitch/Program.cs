@@ -1,6 +1,8 @@
 using System.Text;
 using CleannetCodeBot.Twitch;
 using CleannetCodeBot.Twitch.Controllers;
+using CleannetCodeBot.Twitch.Infrastructure;
+using CleannetCodeBot.Twitch.Polls;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using TwitchLib.Api;
@@ -25,8 +27,15 @@ builder.Services.AddSingleton<IApiSettings>(x => new ApiSettings
 });
 builder.Services.AddSingleton<ITwitchAPI, TwitchAPI>();
 
+builder.Services.AddSingleton<IPollsRepository, PollsRepository>();
+builder.Services.AddSingleton<IQuestionsRepository, QuestionsRepository>();
+builder.Services.AddSingleton<IUsersPollStartRegistry, UsersPollStartRegistry>();
+
+builder.Services.AddSingleton<IPollsService, PollsService>();
+
 builder.Services.AddHostedService<TwitchWebsocketBackgroundService>();
 builder.Services.AddHostedService<TwitchBotBackgroundService>();
+builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 builder.Services.AddHttpClient();
 
