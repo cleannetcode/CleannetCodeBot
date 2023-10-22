@@ -46,13 +46,14 @@ public class PollsService : IPollsService
             IsUserInputRequired = true,
             IsEnabled = true
         };
-
-        await RemoveRewardWithTitle(requestPayload.Title, broadCasterId, authToken);
-
-        _logger.LogInformation($"Trying create reward for poll creating by user {userId}");
+        
+        
         string rewardId;
         try
         {
+            await RemoveRewardWithTitle(requestPayload.Title, broadCasterId, authToken);
+
+            _logger.LogInformation($"Trying create reward for poll creating by user {userId}");
             var requestResult = await _twitchApi.Helix.ChannelPoints.CreateCustomRewardsAsync(broadCasterId, requestPayload, authToken);
             rewardId = requestResult.Data.First().Id;
             _logger.LogInformation($"Reward created for poll. RewardId {rewardId}");
