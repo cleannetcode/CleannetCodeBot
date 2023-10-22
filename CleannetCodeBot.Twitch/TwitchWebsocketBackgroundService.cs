@@ -72,7 +72,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
 
             _twitchApi.Settings.AccessToken = authToken.AccessToken;
 
-            isConnected = await _eventSubWebsocketClient.ConnectAsync(new Uri("ws://127.0.0.1:8080/ws"));
+            isConnected = await _eventSubWebsocketClient.ConnectAsync();
         }
 
         while (!cancellationToken.IsCancellationRequested && isConnected)
@@ -189,13 +189,15 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         
 
         var authToken = _memoryCache.Get<AuthToken>(AuthToken.Key);
-
+        if (authToken is null)
+            return;
 
         if (eventData.Reward.Title == "Test Reward from CLI")
         {
+            _logger.LogInformation("Received start poll command");
             try
             {
-                await _pollsService.CreatePoll(eventData.UserId, eventData.BroadcasterUserId, authToken.AccessToken);
+                await _pollsService.CreatePoll(eventData.UserId,  eventData.UserName, eventData.BroadcasterUserId, authToken.AccessToken);
             }
             catch (Exception exception)
             {

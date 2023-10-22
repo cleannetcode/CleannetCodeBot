@@ -25,7 +25,7 @@ public class PollsService : IPollsService
         _logger = logger;
     }
 
-    public async Task CreatePoll(string userId, string broadCasterId, string authToken)
+    public async Task CreatePoll(string userId, string username, string broadCasterId, string authToken)
     {
         _logger.LogInformation($"Trying create poll by user {userId}");
         if (!_usersPollStartRegistry.AddUserTryRecord(userId, DateTime.UtcNow.AddHours(24)))  // TODO move time to config
@@ -40,13 +40,14 @@ public class PollsService : IPollsService
         // Create reward
         var requestPayload = new CreateCustomRewardsRequest()
         {
-            Title = "Вопрос",
+            Title = $"Вопрос от {username}",
             Cost = 1,
             Prompt = question.ToString(),
             IsUserInputRequired = true,
-            IsMaxPerUserPerStreamEnabled = true,
-            MaxPerUserPerStream = 1
+            IsEnabled = true
         };
+
+        await RemoveRewardWithTitle(requestPayload.Title, broadCasterId, authToken);
 
         _logger.LogInformation($"Trying create reward for poll creating by user {userId}");
         string rewardId;
@@ -82,7 +83,7 @@ public class PollsService : IPollsService
 
         _pollsRepository.RemovePollByRewardId(pollRewardId);
 
-        // two parallel operations:
+        // two operations can be done in parallel:
         // Remove poll reward
         _logger.LogInformation($"Trying delete poll reward with id {pollRewardId}");
         try
@@ -108,5 +109,35 @@ public class PollsService : IPollsService
         var poll = _pollsRepository.GetPollByRewardId(pollRewardId);
         
         poll?.AddVote(userId, answer);
+    }
+
+    private async Task RemoveRewardWithTitle(string title, string broadCasterId, string authToken)
+    {
+        _logger.LogInformation($"Trying to find and remove reward with title {title}");
+        try
+        {
+            _logger.LogInformation("Get reward list");
+            var rewards = await _twitchApi.Helix.ChannelPoints.GetCustomRewardAsync(broadcasterId: broadCasterId, onlyManageableRewards: true,
+                accessToken: authToken);
+            
+            _logger.LogInformation($"Received {rewards.Data.Length} rewards");
+
+            var rewardExists = rewards.Data.FirstOrDefault(x => x.Title == title);
+            if (rewardExists is not null)
+            {
+                _logger.LogInformation($"Found reward with requested title {title}. Trying to delete");
+                await _twitchApi.Helix.ChannelPoints.DeleteCustomRewardAsync(broadCasterId, rewardExists.Id, authToken);
+                _logger.LogInformation($"Reward with title {title} was deleted");
+            }
+            else
+            {
+                _logger.LogInformation($"Reward with requested title {title} not found");
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError($"Error occured on finding and deleting reward with title {title}. Details {e.Message}");
+            throw;
+        }
     }
 }
