@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
+        <PackageReference Include="MongoDB.Driver" Version="2.21.0" />
         <PackageReference Include="Polly" Version="8.0.0" />
         <PackageReference Include="Polly.Extensions" Version="8.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
@@ -24,6 +25,12 @@
         <Content Include="..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="MongoDB.Driver">
+        <HintPath>..\..\..\.nuget\packages\mongodb.driver\2.21.0\lib\netstandard2.1\MongoDB.Driver.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
