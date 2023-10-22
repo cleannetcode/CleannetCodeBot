@@ -1,11 +1,13 @@
 ﻿using CleannetCodeBot.Twitch.Polls;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Polly;
 using Polly.Registry;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Core.Exceptions;
 using TwitchLib.Api.Interfaces;
+using TwitchLib.EventSub.Core.SubscriptionTypes.Channel;
 using TwitchLib.EventSub.Websockets;
 using TwitchLib.EventSub.Websockets.Core.EventArgs;
 using TwitchLib.EventSub.Websockets.Core.EventArgs.Channel;
@@ -21,6 +23,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
     private readonly EventSubWebsocketClient _eventSubWebsocketClient;
     private readonly IPollsService _pollsService;
     private readonly IOptions<PollSettings> _pollSettings;
+    private readonly IMongoCollection<TwitchUser> _usersCollection;
     private readonly ResiliencePipeline _resiliencePipeline;
     private const string ChannelRewardRedemption = "channel.channel_points_custom_reward_redemption.add";
 
@@ -32,17 +35,19 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         IOptions<AppSettings> options,
         EventSubWebsocketClient eventSubWebsocketClient,
         IPollsService pollsService,
-        IOptions<PollSettings> pollSettings)
+        IOptions<PollSettings> pollSettings,
+        IMongoDatabase mongoDatabase)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _memoryCache = memoryCache;
         _twitchApi = twitchApi;
         _appSettings = options.Value;
         _resiliencePipeline = resiliencePipelineProvider.GetPipeline(ServiceCollectionExtension.RetryResiliencePipeline);
-
-        _eventSubWebsocketClient = eventSubWebsocketClient ?? throw new ArgumentNullException(nameof(eventSubWebsocketClient));
         _pollsService = pollsService;
         _pollSettings = pollSettings;
+        _usersCollection = mongoDatabase.GetCollection<TwitchUser>(TwitchUser.CollectionName);
+
+        _eventSubWebsocketClient = eventSubWebsocketClient ?? throw new ArgumentNullException(nameof(eventSubWebsocketClient));
         _eventSubWebsocketClient.WebsocketConnected += OnWebsocketConnected;
         _eventSubWebsocketClient.WebsocketDisconnected += OnWebsocketDisconnected;
         _eventSubWebsocketClient.WebsocketReconnected += OnWebsocketReconnected;
@@ -189,8 +194,9 @@ public class TwitchWebsocketBackgroundService : BackgroundService
     {
         var eventData = e.Notification.Payload.Event;
         _logger.LogInformation($"{eventData.UserName} requested from {eventData.BroadcasterUserName} reward {eventData.Reward.Title}");
-        
 
+        await SaveUserDate(eventData);
+        
         var authToken = _memoryCache.Get<AuthToken>(AuthToken.Key);
         if (authToken is null)
             return;
@@ -210,6 +216,30 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         else
         {
             _pollsService.AddVoteToPoll(eventData.Reward.Id, eventData.UserId, eventData.UserInput.Trim());
+        }
+    }
+
+    private async Task SaveUserDate(ChannelPointsCustomRewardRedemption eventData)
+    {
+        try
+        {
+            _logger.LogInformation($"Trying to find user in db with twitchId {eventData.UserId}");
+            var user = _usersCollection.Find(x => x.TwitchUserId == eventData.UserId).FirstOrDefault();
+            if (user is null)
+            {
+                _logger.LogInformation($"User not found. Creating new one with twitch id {eventData.UserId}");
+                user = new TwitchUser()
+                {
+                    Nickname = eventData.UserLogin,
+                    TwitchUserId = eventData.UserId
+                };
+                await _usersCollection.InsertOneAsync(user);
+                _logger.LogInformation($"User with twitch id {eventData.UserId} created");
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError($"Error occured on creating new user: {e.Message}");
         }
     }
 }
