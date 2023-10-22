@@ -25,6 +25,10 @@ builder.Services.AddSingleton<IApiSettings>(x => new ApiSettings
 {
     ClientId = x.GetRequiredService<IOptions<AppSettings>>().Value.ClientId,
 });
+
+builder.Services.Configure<PollSettings>(
+    builder.Configuration.GetSection(nameof(PollSettings)));
+
 builder.Services.AddSingleton<ITwitchAPI, TwitchAPI>();
 
 builder.Services.AddSingleton<IPollsRepository, PollsRepository>();

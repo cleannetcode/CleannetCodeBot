@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
 using TwitchLib.Api.Interfaces;
 
@@ -11,24 +12,27 @@ public class PollsService : IPollsService
     private readonly IUsersPollStartRegistry _usersPollStartRegistry;
     private readonly ITwitchAPI _twitchApi;
     private readonly ILogger<PollsService> _logger;
+    private readonly IOptions<PollSettings> _pollSettings;
 
     public PollsService(IPollsRepository pollsRepository, 
         IQuestionsRepository questionsRepository,
         IUsersPollStartRegistry usersPollStartRegistry,
         ITwitchAPI twitchApi, 
-        ILogger<PollsService> logger)
+        ILogger<PollsService> logger, 
+        IOptions<PollSettings> pollSettings)
     {
         _pollsRepository = pollsRepository;
         _questionsRepository = questionsRepository;
         _usersPollStartRegistry = usersPollStartRegistry;
         _twitchApi = twitchApi;
         _logger = logger;
+        _pollSettings = pollSettings;
     }
 
     public async Task CreatePoll(string userId, string username, string broadCasterId, string authToken)
     {
         _logger.LogInformation($"Trying create poll by user {userId}");
-        if (!_usersPollStartRegistry.AddUserTryRecord(userId, DateTime.UtcNow.AddHours(24)))  // TODO move time to config
+        if (!_usersPollStartRegistry.AddUserTryRecord(userId, DateTime.UtcNow.AddHours(_pollSettings.Value.UserPollCreationGapInHours))) 
         {
             _logger.LogInformation($"Cannot create poll by user {userId} request. Time gap not expired");
             return;
@@ -66,7 +70,7 @@ public class PollsService : IPollsService
         }
         
         // Create poll with id
-        var poll = new Poll(question, broadCasterId, rewardId, userId, DateTime.UtcNow.AddMinutes(5)); // TODO  move time to config
+        var poll = new Poll(question, broadCasterId, rewardId, userId, DateTime.UtcNow.AddMinutes(_pollSettings.Value.PollDurationInMinutes));
         
         _pollsRepository.AddPoll(poll);
         _logger.LogInformation($"Poll created by user {userId}");

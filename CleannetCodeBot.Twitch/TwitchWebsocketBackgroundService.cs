@@ -20,6 +20,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
     private readonly AppSettings _appSettings;
     private readonly EventSubWebsocketClient _eventSubWebsocketClient;
     private readonly IPollsService _pollsService;
+    private readonly IOptions<PollSettings> _pollSettings;
     private readonly ResiliencePipeline _resiliencePipeline;
     private const string ChannelRewardRedemption = "channel.channel_points_custom_reward_redemption.add";
 
@@ -30,7 +31,8 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         ITwitchAPI twitchApi,
         IOptions<AppSettings> options,
         EventSubWebsocketClient eventSubWebsocketClient,
-        IPollsService pollsService)
+        IPollsService pollsService,
+        IOptions<PollSettings> pollSettings)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _memoryCache = memoryCache;
@@ -40,6 +42,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
 
         _eventSubWebsocketClient = eventSubWebsocketClient ?? throw new ArgumentNullException(nameof(eventSubWebsocketClient));
         _pollsService = pollsService;
+        _pollSettings = pollSettings;
         _eventSubWebsocketClient.WebsocketConnected += OnWebsocketConnected;
         _eventSubWebsocketClient.WebsocketDisconnected += OnWebsocketDisconnected;
         _eventSubWebsocketClient.WebsocketReconnected += OnWebsocketReconnected;
@@ -192,7 +195,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
         if (authToken is null)
             return;
 
-        if (eventData.Reward.Title == "Test Reward from CLI")
+        if (eventData.Reward.Title == _pollSettings.Value.RewardTitle)
         {
             _logger.LogInformation("Received start poll command");
             try
