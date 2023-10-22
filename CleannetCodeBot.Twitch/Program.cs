@@ -5,6 +5,7 @@ using CleannetCodeBot.Twitch.Infrastructure;
 using CleannetCodeBot.Twitch.Polls;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using TwitchLib.Api;
 using TwitchLib.Api.Core;
 using TwitchLib.Api.Core.Enums;
@@ -30,6 +31,13 @@ builder.Services.Configure<PollSettings>(
     builder.Configuration.GetSection(nameof(PollSettings)));
 
 builder.Services.AddSingleton<ITwitchAPI, TwitchAPI>();
+
+builder.Services.AddSingleton<IMongoDatabase>(_ =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("MongoDbConnectionString")!;
+    var client = new MongoClient(connectionString);
+    return client.GetDatabase("CleannetCodeTwitchBot");
+});
 
 builder.Services.AddSingleton<IPollsRepository, PollsRepository>();
 builder.Services.AddSingleton<IQuestionsRepository, QuestionsRepository>();

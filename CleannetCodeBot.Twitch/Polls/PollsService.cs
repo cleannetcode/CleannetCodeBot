@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using TwitchLib.Api.Helix.Models.ChannelPoints.CreateCustomReward;
 using TwitchLib.Api.Interfaces;
 
@@ -13,13 +14,15 @@ public class PollsService : IPollsService
     private readonly ITwitchAPI _twitchApi;
     private readonly ILogger<PollsService> _logger;
     private readonly IOptions<PollSettings> _pollSettings;
+    private readonly IMongoCollection<Vote> _votesCollection;
 
     public PollsService(IPollsRepository pollsRepository, 
         IQuestionsRepository questionsRepository,
         IUsersPollStartRegistry usersPollStartRegistry,
         ITwitchAPI twitchApi, 
         ILogger<PollsService> logger, 
-        IOptions<PollSettings> pollSettings)
+        IOptions<PollSettings> pollSettings,
+        IMongoDatabase mongoDatabase)
     {
         _pollsRepository = pollsRepository;
         _questionsRepository = questionsRepository;
@@ -27,6 +30,8 @@ public class PollsService : IPollsService
         _twitchApi = twitchApi;
         _logger = logger;
         _pollSettings = pollSettings;
+        
+        _votesCollection =  mongoDatabase.GetCollection<Vote>(Vote.CollectionName);;
     }
 
     public async Task CreatePoll(string userId, string username, string broadCasterId, string authToken)
@@ -102,10 +107,7 @@ public class PollsService : IPollsService
             // retry?
         }
         
-        // save stats
-        await System.IO.File.WriteAllTextAsync(Path.Combine(Environment.CurrentDirectory, $"poll-{poll.RewardId}.json"),
-            JsonSerializer.Serialize(poll.Results()));
-
+        await _votesCollection.InsertManyAsync(poll.Results());
     }
 
     public void AddVoteToPoll(string pollRewardId, string userId, string answer)
