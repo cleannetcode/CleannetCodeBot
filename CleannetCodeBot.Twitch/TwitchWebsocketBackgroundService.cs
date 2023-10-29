@@ -213,7 +213,7 @@ public class TwitchWebsocketBackgroundService : BackgroundService
                 _logger.LogInformation($"Poll creating error: {exception.Message}");
             }
         }
-        else
+        else if (eventData.Reward.Title.StartsWith("Вопрос от"))
         {
             _pollsService.AddVoteToPoll(eventData.Reward.Id, eventData.UserId, eventData.UserInput.Trim());
         }

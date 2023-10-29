@@ -13,16 +13,16 @@ public class Poll
     
     public PollQuestion Question { get; }
     
-    public string CreatedByUser { get; }
+    public string CreatedByUserId { get; }
 
     public DateTime EndDate { get; }
 
-    public Poll(PollQuestion question, string broadcasterId, string rewardId, string createdByUser, DateTime endDate)
+    public Poll(PollQuestion question, string broadcasterId, string rewardId, string createdByUserId, DateTime endDate)
     {
         Question = question;
         BroadcasterId = broadcasterId;
         RewardId = rewardId;
-        CreatedByUser = createdByUser;
+        CreatedByUserId = createdByUserId;
         EndDate = endDate;
 
         _votes = new ConcurrentDictionary<string, string>();

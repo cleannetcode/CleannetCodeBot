@@ -27,10 +27,4 @@
         </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="MongoDB.Driver">
-        <HintPath>..\..\..\.nuget\packages\mongodb.driver\2.21.0\lib\netstandard2.1\MongoDB.Driver.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>
