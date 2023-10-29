@@ -136,10 +136,6 @@ public class PollsService : IPollsService
                 await _twitchApi.Helix.ChannelPoints.DeleteCustomRewardAsync(broadCasterId, rewardExists.Id, authToken);
                 _logger.LogInformation($"Reward with title {title} was deleted");
             }
-            else
-            {
-                _logger.LogInformation($"Reward with requested title {title} not found");
-            }
         }
         catch (Exception e)
         {
