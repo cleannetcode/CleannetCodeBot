@@ -1,8 +1,11 @@
 using System.Text;
 using CleannetCodeBot.Twitch;
 using CleannetCodeBot.Twitch.Controllers;
+using CleannetCodeBot.Twitch.Infrastructure;
+using CleannetCodeBot.Twitch.Polls;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using TwitchLib.Api;
 using TwitchLib.Api.Core;
 using TwitchLib.Api.Core.Enums;
@@ -23,10 +26,28 @@ builder.Services.AddSingleton<IApiSettings>(x => new ApiSettings
 {
     ClientId = x.GetRequiredService<IOptions<AppSettings>>().Value.ClientId,
 });
+
+builder.Services.Configure<PollSettings>(
+    builder.Configuration.GetSection(nameof(PollSettings)));
+
 builder.Services.AddSingleton<ITwitchAPI, TwitchAPI>();
+
+builder.Services.AddSingleton<IMongoDatabase>(_ =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("MongoDbConnectionString")!;
+    var client = new MongoClient(connectionString);
+    return client.GetDatabase("CleannetCodeTwitchBot");
+});
+
+builder.Services.AddSingleton<IPollsRepository, PollsRepository>();
+builder.Services.AddSingleton<IQuestionsRepository, QuestionsRepository>();
+builder.Services.AddSingleton<IUsersPollStartRegistry, UsersPollStartRegistry>();
+
+builder.Services.AddSingleton<IPollsService, PollsService>();
 
 builder.Services.AddHostedService<TwitchWebsocketBackgroundService>();
 builder.Services.AddHostedService<TwitchBotBackgroundService>();
+builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 builder.Services.AddHttpClient();
 
